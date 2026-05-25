@@ -64,12 +64,11 @@ export default function DashboardOverview() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
             {VERTICALS.map((v) => (
-              <Link key={v.name} href={v.href} style={{
+              <Link key={v.name} href={v.href} className="dashboard-card" style={{
                 background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '0.75rem',
                 padding: '1.25rem', textDecoration: 'none',
                 boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.06)',
                 display: 'flex', flexDirection: 'column',
-                transition: 'box-shadow 0.15s',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
                   <span style={{
