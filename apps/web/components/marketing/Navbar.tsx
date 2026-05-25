@@ -36,9 +36,6 @@ export default function Navbar() {
           <Link href="/about" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
             About
           </Link>
-          <Link href="/dashboard" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-            Dashboard
-          </Link>
           <Link href="/contact" style={{
             display: 'inline-flex',
             alignItems: 'center',
