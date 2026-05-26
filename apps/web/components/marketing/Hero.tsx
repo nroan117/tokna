@@ -49,14 +49,15 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Catch AI cost waste<br />
+            Catch AI cost waste
+            <br />
             <span style={{ color: '#f97316' }}>before it builds & before it ships</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',
             lineHeight: 1.7,
             color: '#6b7280',
-            margin: 0,
+            margin: '0.5rem 0 0',
             maxWidth: '520px',
           }}>
             Every token, every agent loop, every model call — optimized before it reaches production.

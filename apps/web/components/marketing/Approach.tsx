@@ -59,7 +59,7 @@ export default function Approach() {
             margin: '0 0 1rem',
             lineHeight: 1.2,
           }}>
-            Cost intelligence built into your<br />development workflow
+            AI cost intelligence built into your<br />development workflow
           </h2>
           <p style={{ fontSize: '1.125rem', color: '#6b7280', margin: 0 }}>
             From first commit to production, Tokna meets you wherever you&apos;re building.
