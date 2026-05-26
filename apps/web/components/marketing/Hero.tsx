@@ -1,32 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Hero() {
-  const terminalOutput = `$ npx tokna@latest scan
-
-🔍 Scanning LLM code for cost regressions...
-
-  ✓ Analyzing prompt configurations
-  ✓ Checking token limits
-  ✓ Reviewing model selections
-  ✓ Auditing retry logic
-
-⚠ FINDINGS (3 issues detected):
-
-  [HIGH] Missing max_tokens in chat.ts:42
-    Estimated impact: +$1,240/mo
-    Fix: Add max_tokens: 512
-
-  [MED]  Unbounded retry loop in api.ts:87
-    Estimated impact: +$340/mo
-    Fix: Add retry cap
-
-  [LOW]  GPT-4 used for classification
-    Estimated impact: +$180/mo
-    Fix: Switch to GPT-3.5
-
-✅ Scan complete — 3 regressions found
-   Total estimated waste: $1,760/mo`;
-
   return (
     <section className="hero-section" style={{
       background: '#ffffff',
@@ -125,47 +100,24 @@ export default function Hero() {
           </p>
         </div>
 
-        {/* Right: Terminal */}
+        {/* Right: Dashboard preview */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div style={{
-            background: '#0f1117',
-            border: '1px solid rgba(0,0,0,0.12)',
             borderRadius: '0.75rem',
             overflow: 'hidden',
             width: '100%',
-            maxWidth: '520px',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(249,115,22,0.08)',
+            maxWidth: '580px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(249,115,22,0.12)',
+            border: '1px solid rgba(249,115,22,0.15)',
           }}>
-            {/* Terminal header */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1rem',
-              background: 'rgba(255,255,255,0.04)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}>
-              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444', display: 'block' }} />
-              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#f59e0b', display: 'block' }} />
-              <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#22c55e', display: 'block' }} />
-              <span style={{ fontSize: '0.75rem', color: '#6b7280', marginLeft: 'auto', fontFamily: 'monospace' }}>
-                tokna scan
-              </span>
-            </div>
-            {/* Terminal body */}
-            <div style={{ padding: '1.25rem', background: '#0f1117' }}>
-              <pre style={{
-                fontFamily: "'Courier New', Courier, monospace",
-                fontSize: '0.8125rem',
-                lineHeight: 1.6,
-                color: '#a1efb7',
-                background: '#0f1117',
-                margin: 0,
-                whiteSpace: 'pre',
-              }}>
-                {terminalOutput}
-              </pre>
-            </div>
+            <Image
+              src="/dashboard-preview.png"
+              alt="Tokna Dashboard — AI cost intelligence across 8 verticals"
+              width={1200}
+              height={1000}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+              priority
+            />
           </div>
         </div>
       </div>
