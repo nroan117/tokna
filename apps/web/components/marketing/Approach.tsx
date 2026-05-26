@@ -50,7 +50,7 @@ export default function Approach() {
             color: '#f97316',
             margin: '0 0 1rem',
           }}>
-            THE Tokna APPROACH
+            HOW TOKNA WORKS
           </p>
           <h2 style={{
             fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',

@@ -40,7 +40,7 @@ export default function Hero() {
             color: '#f97316',
             margin: 0,
           }}>
-            AI Cost Optimization Platform
+            AI Cost Intelligence Platform
           </p>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
