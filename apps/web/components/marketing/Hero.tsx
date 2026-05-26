@@ -40,7 +40,7 @@ export default function Hero() {
             color: '#f97316',
             margin: 0,
           }}>
-            Cloud Cost Optimization Platform
+            AI Application Intelligence Platform
           </p>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
@@ -49,8 +49,8 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Catch cloud cost waste<br />
-            <span style={{ color: '#f97316' }}>before it ships</span>
+            Shift left on<br />
+            <span style={{ color: '#f97316' }}>AI quality</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',
@@ -59,7 +59,7 @@ export default function Hero() {
             margin: 0,
             maxWidth: '520px',
           }}>
-            Automated cost regression detection for LLM applications. Catch expensive bugs in CI/CD before they reach production.
+            Catch cost, performance, and efficiency regressions across your LLM stack — before they reach production.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <Link href="/contact" style={{

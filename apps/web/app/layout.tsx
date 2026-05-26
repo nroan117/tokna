@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Tokna — AI-powered cloud cost optimization',
-  description: 'Catch cloud cost waste before it ships. Automated cost regression detection for LLM applications.',
+  title: 'Tokna — AI Application Intelligence Platform',
+  description: 'Catch cost, performance, and efficiency regressions across your LLM stack — before they reach production.',
 };
 
 export default function RootLayout({
