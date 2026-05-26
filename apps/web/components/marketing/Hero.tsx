@@ -40,7 +40,7 @@ export default function Hero() {
             color: '#f97316',
             margin: 0,
           }}>
-            AI Application Intelligence Platform
+            AI Cost Optimization Platform
           </p>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
@@ -49,8 +49,8 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Shift left on<br />
-            <span style={{ color: '#f97316' }}>AI quality</span>
+            Catch AI cost waste<br />
+            <span style={{ color: '#f97316' }}>before it ships</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',
@@ -59,7 +59,7 @@ export default function Hero() {
             margin: 0,
             maxWidth: '520px',
           }}>
-            Catch cost, performance, and efficiency regressions across your LLM stack — before they reach production.
+            Every token, every agent loop, every model call — optimized before it reaches production.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <Link href="/contact" style={{
