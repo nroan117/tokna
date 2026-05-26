@@ -1,6 +1,261 @@
 'use client';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 
+/* ─── Mockup: Tab 1 — Scan Results Panel ─────────────────────────────────── */
+const ScanResultsMockup: ReactNode = (
+  <div style={{
+    maxWidth: '520px', width: '100%', fontFamily: 'system-ui, sans-serif',
+    borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.08)', overflow: 'hidden', background: '#ffffff',
+  }}>
+    {/* Header */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '1rem' }}>🔍</span>
+        <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.9375rem' }}>Tokna Scan Results</span>
+        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>· 47 files</span>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#ef4444', fontWeight: 600, marginTop: '0.25rem' }}>3 findings detected</div>
+    </div>
+    {/* HIGH */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔴 HIGH</span>
+        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>chat/completion.ts:42</code>
+      </div>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>missing-max-tokens</div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>Uncapped completions — est. +$1,240/mo</div>
+      <div style={{ fontSize: '0.8125rem', color: '#16a34a', marginTop: '0.25rem', fontWeight: 500 }}>Fix: Add maxTokens: 512</div>
+    </div>
+    {/* MED */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🟠 MED</span>
+        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>utils/retry.ts:87</code>
+      </div>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>unbounded-retry</div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>No retry cap — est. +$340/mo</div>
+      <div style={{ fontSize: '0.8125rem', color: '#16a34a', marginTop: '0.25rem', fontWeight: 500 }}>Fix: Add maxRetries: 3</div>
+    </div>
+    {/* LOW */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔵 LOW</span>
+        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>classify/model.ts:14</code>
+      </div>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>overpriced-model</div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>GPT-4 for classification — +$180/mo</div>
+      <div style={{ fontSize: '0.8125rem', color: '#16a34a', marginTop: '0.25rem', fontWeight: 500 }}>Fix: Use gpt-3.5-turbo</div>
+    </div>
+    {/* Footer */}
+    <div style={{ padding: '1rem 1.25rem', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+      <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827' }}>
+        Total estimated waste: <span style={{ color: '#ef4444' }}>$1,760/mo</span>
+      </div>
+      <button style={{ background: '#f97316', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>
+        Run tokna fix →
+      </button>
+    </div>
+  </div>
+);
+
+/* ─── Mockup: Tab 2 — GitHub PR Comment ──────────────────────────────────── */
+const CICDMockup: ReactNode = (
+  <div style={{
+    maxWidth: '520px', width: '100%',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    borderRadius: '0.75rem', border: '1px solid #d0d7de',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.08)', overflow: 'hidden', background: '#ffffff',
+  }}>
+    {/* PR header */}
+    <div style={{ padding: '0.875rem 1.25rem', background: '#f6f8fa', borderBottom: '1px solid #d0d7de' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ background: '#1a7f37', color: '#fff', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.625rem', borderRadius: '999px' }}>Open</span>
+        <span style={{ fontWeight: 600, color: '#24292f', fontSize: '0.9rem' }}>Pull Request #247</span>
+      </div>
+      <div style={{ fontSize: '0.875rem', color: '#24292f', fontWeight: 600, marginTop: '0.25rem' }}>
+        feat: add streaming support to chat API
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#57606a', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+        <span style={{ background: '#ddf4ff', color: '#0550ae', padding: '0.0625rem 0.375rem', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.75rem' }}>main</span>
+        <span>←</span>
+        <span style={{ background: '#ddf4ff', color: '#0550ae', padding: '0.0625rem 0.375rem', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.75rem' }}>feature/streaming</span>
+      </div>
+    </div>
+    {/* Comment */}
+    <div style={{ padding: '1rem 1.25rem' }}>
+      <div style={{ display: 'flex', gap: '0.75rem' }}>
+        {/* Bot avatar */}
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '50%', background: '#f97316',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1.125rem', flexShrink: 0,
+        }}>⚡</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 600, color: '#24292f', fontSize: '0.875rem' }}>tokna bot</span>
+            <span style={{ color: '#57606a', fontSize: '0.8125rem' }}>· just now</span>
+            <span style={{ background: '#ddf4ff', color: '#0550ae', fontSize: '0.6875rem', padding: '0.0625rem 0.375rem', borderRadius: '999px', fontWeight: 600 }}>Bot</span>
+          </div>
+          {/* Inner Tokna result card */}
+          <div style={{ border: '1px solid #d0d7de', borderRadius: '0.5rem', overflow: 'hidden' }}>
+            <div style={{ padding: '0.625rem 1rem', background: '#f6f8fa', borderBottom: '1px solid #d0d7de', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.875rem' }}>🔍</span>
+              <span style={{ fontWeight: 700, color: '#24292f', fontSize: '0.875rem' }}>Tokna Cost Check</span>
+            </div>
+            <div style={{ padding: '0.75rem 1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.625rem', fontSize: '0.8125rem', fontWeight: 600, flexWrap: 'wrap' }}>
+                <span style={{ color: '#1a7f37' }}>✅ 0 HIGH</span>
+                <span style={{ color: '#bf8700' }}>⚠️ 1 MED</span>
+                <span style={{ color: '#57606a' }}>✓ 2 LOW</span>
+              </div>
+              <div style={{ fontSize: '0.8125rem', color: '#24292f', marginBottom: '0.625rem' }}>
+                Estimated monthly impact: <strong style={{ color: '#ef4444' }}>+$340</strong>
+              </div>
+              <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '0.375rem', padding: '0.625rem 0.75rem', marginBottom: '0.625rem' }}>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#92400e', marginBottom: '0.25rem' }}>⚠️ MED · utils/retry.ts:87</div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#24292f' }}>unbounded-retry</div>
+                <div style={{ fontSize: '0.75rem', color: '#57606a', marginTop: '0.125rem' }}>No retry cap — +$340/mo</div>
+              </div>
+              <div style={{ fontSize: '0.8125rem', color: '#0550ae', cursor: 'pointer' }}>
+                View full report → tokna.ai/runs/…
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─── Mockup: Tab 3 — Team Dashboard Panel ───────────────────────────────── */
+const CostReportsMockup: ReactNode = (
+  <div style={{
+    maxWidth: '520px', width: '100%', fontFamily: 'system-ui, sans-serif',
+    borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.08)', overflow: 'hidden', background: '#ffffff',
+  }}>
+    {/* Header */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.9375rem' }}>Cost Intelligence Report</span>
+      <span style={{ fontSize: '0.8125rem', color: '#6b7280', fontWeight: 500 }}>May 2026</span>
+    </div>
+    {/* Team row: Platform Engineering */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Platform Engineering</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>94/100</span>
+          <span>✅</span>
+        </div>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>2 open · $4,320/mo savings unlocked</div>
+      <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
+        <div style={{ background: '#f97316', height: '100%', width: '94%', borderRadius: '999px' }} />
+      </div>
+    </div>
+    {/* Team row: ML Infrastructure */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>ML Infrastructure</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ background: '#fffbeb', color: '#d97706', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>71/100</span>
+          <span>⚠️</span>
+        </div>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>9 open · $12,300/mo at risk</div>
+      <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
+        <div style={{ background: '#f97316', height: '100%', width: '71%', borderRadius: '999px' }} />
+      </div>
+    </div>
+    {/* Team row: Data Engineering */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Data Engineering</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>83/100</span>
+          <span>✅</span>
+        </div>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>4 open · $2,100/mo savings unlocked</div>
+      <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
+        <div style={{ background: '#f97316', height: '100%', width: '83%', borderRadius: '999px' }} />
+      </div>
+    </div>
+    {/* Footer */}
+    <div style={{ padding: '1rem 1.25rem', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <span style={{ fontSize: '1rem' }}>📈</span>
+      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827' }}>
+        Total savings unlocked: <span style={{ color: '#16a34a' }}>$18,720/mo</span>
+      </span>
+    </div>
+  </div>
+);
+
+/* ─── Mockup: Tab 4 — Rules Browser ─────────────────────────────────────── */
+const RuleEngineMockup: ReactNode = (
+  <div style={{
+    maxWidth: '520px', width: '100%', fontFamily: 'system-ui, sans-serif',
+    borderRadius: '0.75rem', border: '1px solid #e2e8f0',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.08)', overflow: 'hidden', background: '#ffffff',
+  }}>
+    {/* Search bar */}
+    <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', gap: '0.625rem' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', padding: '0.5rem 0.75rem' }}>
+        <span style={{ fontSize: '0.875rem' }}>🔍</span>
+        <span style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>Search 135+ rules...</span>
+      </div>
+      <button style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer', fontWeight: 500 }}>
+        All ▾
+      </button>
+    </div>
+    {/* Expanded rule: TKN-001 */}
+    <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#fffbeb' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexWrap: 'wrap' }}>
+        <span style={{ background: '#f97316', color: '#fff', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>TKN-001</span>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>Token Limits</span>
+        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔴 HIGH</span>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#374151', marginBottom: '0.5rem' }}>Missing max_tokens bound on completion</div>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.375rem', padding: '0.625rem 0.75rem', fontSize: '0.8125rem' }}>
+        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>
+          Matches: <code style={{ fontFamily: 'monospace', color: '#374151' }}>openai.chat()</code> without <code style={{ fontFamily: 'monospace', color: '#374151' }}>maxTokens</code> param
+        </div>
+        <div style={{ color: '#16a34a', fontWeight: 500 }}>Fix: Add maxTokens: 512</div>
+      </div>
+    </div>
+    {/* TKN-042 */}
+    <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+        <span style={{ background: '#f97316', color: '#fff', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>TKN-042</span>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>Model Selection</span>
+        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🟠 MED</span>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>GPT-4 used for classification tasks</div>
+    </div>
+    {/* TKN-087 */}
+    <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+        <span style={{ background: '#f97316', color: '#fff', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>TKN-087</span>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>Retry Logic</span>
+        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🟠 MED</span>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Unbounded retry loop detected</div>
+    </div>
+    {/* TKN-103 */}
+    <div style={{ padding: '0.875rem 1.25rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+        <span style={{ background: '#f97316', color: '#fff', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '4px', fontFamily: 'monospace' }}>TKN-103</span>
+        <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>Prompt Caching</span>
+        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔵 LOW</span>
+      </div>
+      <div style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Cacheable system prompt not cached</div>
+    </div>
+  </div>
+);
+
+/* ─── Tab definitions ─────────────────────────────────────────────────────── */
 const TABS = [
   {
     id: 'cost-scanning',
@@ -13,27 +268,7 @@ const TABS = [
       'Model selection waste',
       'Prompt caching gaps',
     ],
-    codeBlock: `$ npx tokna@latest scan
-
-🔍 Scanning 47 files...
-
-  ⚠ chat/completion.ts:42
-    Rule: missing-max-tokens [HIGH]
-    Impact: ~$1,240/mo uncapped
-    Fix:  maxTokens: 512
-
-  ⚠ utils/retry.ts:87
-    Rule: unbounded-retry [MED]
-    Impact: ~$340/mo worst-case
-    Fix:  maxRetries: 3
-
-  ⚠ classify/model.ts:14
-    Rule: overpriced-model [LOW]
-    Impact: ~$180/mo vs gpt-3.5
-    Fix:  model: 'gpt-3.5-turbo'
-
-Total: 3 regressions · $1,760/mo est.
-Run 'tokna fix' to auto-remediate.`,
+    mockup: ScanResultsMockup,
   },
   {
     id: 'cicd-integration',
@@ -46,28 +281,7 @@ Run 'tokna fix' to auto-remediate.`,
       'PR comments with cost delta',
       'Block merges on HIGH findings',
     ],
-    codeBlock: `# .github/workflows/cost-check.yml
-
-name: Cost Regression Check
-on: [pull_request]
-
-jobs:
-  tokna:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: tokna/action@v1
-        with:
-          fail-on: HIGH
-          comment-on-pr: true
-          token: \${{ secrets.GITHUB_TOKEN }}
-
-# PR Comment output:
-# ─────────────────────────────────
-# 🔍 Tokna Cost Check
-# ✅ 0 HIGH · ⚠ 1 MED · ✓ 2 LOW
-# Est. monthly impact: +$340
-# Details → tokna.ai/runs/abc123`,
+    mockup: CICDMockup,
   },
   {
     id: 'cost-reports',
@@ -80,27 +294,7 @@ jobs:
       'Slack / PagerDuty alerts',
       'FinOps Foundation alignment',
     ],
-    codeBlock: `$ tokna report --format json
-
-{
-  "period": "2026-04-01 to 2026-05-01",
-  "teams": {
-    "platform": {
-      "score": 94,
-      "open_findings": 2,
-      "resolved": 18,
-      "est_savings": "$4,320/mo"
-    },
-    "ml-infra": {
-      "score": 71,
-      "open_findings": 9,
-      "resolved": 4,
-      "est_savings": "$1,100/mo"
-    }
-  },
-  "total_est_savings": "$5,420/mo",
-  "trend": "improving (+12pts MoM)"
-}`,
+    mockup: CostReportsMockup,
   },
   {
     id: 'rule-engine',
@@ -113,29 +307,7 @@ jobs:
       'Per-team rule overrides',
       'Semgrep-compatible patterns',
     ],
-    codeBlock: `# tokna-rules/token-limits.yaml
-
-rules:
-  - id: missing-max-tokens
-    severity: HIGH
-    pattern: |
-      openai.chat.completions.create({
-        ...,
-        # no max_tokens key
-      })
-    message: >
-      Missing max_tokens can cause runaway
-      costs. Add max_tokens: 512 or lower.
-    fix: "Add max_tokens: 512"
-    tags: [openai, tokens, cost-critical]
-
-  - id: gpt4-in-bulk-job
-    severity: MED
-    pattern: model == "gpt-4*"
-    context: batch_job
-    message: >
-      GPT-4 in bulk jobs costs 20x GPT-3.5.
-      Use gpt-3.5-turbo for classification.`,
+    mockup: RuleEngineMockup,
   },
 ];
 
@@ -192,6 +364,7 @@ export default function ProductTabs() {
 
         {/* Tab content */}
         <div className="product-tabs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
+          {/* Left: text */}
           <div>
             <p style={{
               fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em',
@@ -211,31 +384,9 @@ export default function ProductTabs() {
               ))}
             </ul>
           </div>
-          <div>
-            <div style={{
-              background: '#0f1117', borderRadius: '0.75rem', overflow: 'hidden',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.12)',
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1rem',
-                background: 'rgba(255,255,255,0.04)',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-              }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', display: 'block' }} />
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'block' }} />
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', display: 'block' }} />
-              </div>
-              <div style={{ padding: '1.25rem', overflow: 'auto' }}>
-                <pre style={{
-                  fontFamily: "'Courier New', Courier, monospace",
-                  fontSize: '0.8125rem', lineHeight: 1.6, color: '#a1efb7',
-                  margin: 0, whiteSpace: 'pre',
-                }}>
-                  {activeTab.codeBlock}
-                </pre>
-              </div>
-            </div>
+          {/* Right: mockup */}
+          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            {activeTab.mockup}
           </div>
         </div>
       </div>
