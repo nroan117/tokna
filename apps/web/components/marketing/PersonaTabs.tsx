@@ -70,7 +70,7 @@ export default function PersonaTabs() {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2.5rem', justifyContent: 'center' }}>
+        <div className="persona-tabs-row" style={{ display: 'flex', gap: '0.75rem', marginBottom: '2.5rem', justifyContent: 'center' }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}

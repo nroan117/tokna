@@ -66,7 +66,7 @@ export default function Approach() {
           </p>
         </div>
 
-        <div style={{
+        <div className="approach-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '1.5rem',

@@ -30,12 +30,14 @@ export default function Navbar() {
           <span style={{ color: '#f97316' }}>⚡</span> Tokna
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <Link href="/pricing" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-            Pricing
-          </Link>
-          <Link href="/about" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-            About
-          </Link>
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <Link href="/pricing" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+              Pricing
+            </Link>
+            <Link href="/about" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+              About
+            </Link>
+          </div>
           <Link href="/contact" style={{
             display: 'inline-flex',
             alignItems: 'center',

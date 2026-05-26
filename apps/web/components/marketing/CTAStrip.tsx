@@ -17,7 +17,7 @@ export default function CTAStrip() {
         <p style={{ fontSize: '1.0625rem', color: '#9ca3af', margin: '0 0 2.5rem' }}>
           Join engineering teams catching LLM cost waste before it reaches production.
         </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+        <div className="cta-strip-buttons" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
           <Link href="/contact" style={{
             display: 'inline-flex', alignItems: 'center',
             padding: '0.875rem 2rem',

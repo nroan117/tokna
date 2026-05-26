@@ -162,7 +162,7 @@ export default function ProductTabs() {
         </div>
 
         {/* Tab bar */}
-        <div role="tablist" style={{
+        <div role="tablist" className="product-tabs-row" style={{
           display: 'flex', gap: '0.5rem', marginBottom: '2rem',
           borderBottom: '1px solid #e5e7eb', paddingBottom: '0',
         }}>
@@ -191,7 +191,7 @@ export default function ProductTabs() {
         </div>
 
         {/* Tab content */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
+        <div className="product-tabs-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}>
           <div>
             <p style={{
               fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em',

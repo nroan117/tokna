@@ -38,7 +38,7 @@ export default function Stats() {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
           {stats.map((stat) => (
             <div key={stat.label} style={{
               background: '#ffffff',

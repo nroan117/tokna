@@ -55,3 +55,18 @@ a {
   transform: translateY(-2px);
   border-color: rgba(249, 115, 22, 0.3) !important;
 }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; }
+  .hero-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  .hero-section { padding: 3rem 1.25rem 2.5rem !important; }
+  .approach-grid { grid-template-columns: 1fr !important; }
+  .product-tabs-row { flex-wrap: wrap !important; gap: 0.25rem !important; }
+  .product-tabs-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+  .stats-grid { grid-template-columns: 1fr !important; }
+  .persona-tabs-row { flex-wrap: wrap !important; gap: 0.25rem !important; }
+  .persona-tabs-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 2rem !important; }
+  .cta-strip-buttons { flex-direction: column !important; align-items: center !important; }
+}

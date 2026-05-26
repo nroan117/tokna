@@ -44,7 +44,7 @@ export default function SiteFooter() {
       padding: '4rem 1.5rem 2rem',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{
+        <div className="footer-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '2rem',

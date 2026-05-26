@@ -28,7 +28,7 @@ export default function Hero() {
    Total estimated waste: $1,760/mo`;
 
   return (
-    <section style={{
+    <section className="hero-section" style={{
       background: '#ffffff',
       padding: '6rem 1.5rem 5rem',
       position: 'relative',
@@ -46,7 +46,7 @@ export default function Hero() {
         pointerEvents: 'none',
       }} />
 
-      <div style={{
+      <div className="hero-grid" style={{
         maxWidth: '1200px',
         margin: '0 auto',
         display: 'grid',
