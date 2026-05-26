@@ -12,7 +12,7 @@ export default function CTAStrip() {
           fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 800, color: '#ffffff',
           margin: '0 0 1rem', lineHeight: 1.2,
         }}>
-          Stop AI Cost Waste. Ship Smarter.
+          Stop AI Cost Waste. Ship Smarter, Automatically.
         </h2>
         <p style={{ fontSize: '1.0625rem', color: '#9ca3af', margin: '0 0 2.5rem' }}>
           Join engineering teams optimizing every token, agent loop, and model call — before it reaches production.
