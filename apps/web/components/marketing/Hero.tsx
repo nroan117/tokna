@@ -50,7 +50,7 @@ export default function Hero() {
             margin: 0,
           }}>
             Catch AI cost waste<br />
-            <span style={{ color: '#f97316' }}>before it builds. before it ships.</span>
+            <span style={{ color: '#f97316' }}>before it builds & before it ships</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',
