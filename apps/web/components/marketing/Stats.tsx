@@ -34,7 +34,7 @@ export default function Stats() {
             Built by engineers who&apos;ve seen the waste
           </h2>
           <p style={{ fontSize: '1.0625rem', color: '#6b7280', margin: 0 }}>
-            Real cost intelligence from real production systems.
+            Real cost engineering automation, proven in production systems.
           </p>
         </div>
 

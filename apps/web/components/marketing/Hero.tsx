@@ -40,7 +40,7 @@ export default function Hero() {
             color: '#f97316',
             margin: 0,
           }}>
-            AI Cost Intelligence Platform
+            AI Cost Engineering, Automated
           </p>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
@@ -60,7 +60,7 @@ export default function Hero() {
             margin: '0.5rem 0 0',
             maxWidth: '520px',
           }}>
-            Every token, every agent loop, every model call — optimized before it reaches production.
+            Prevent AI cost regressions before they ship — every token, every agent loop, every model call, automatically.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <Link href="/contact" style={{
@@ -113,7 +113,7 @@ export default function Hero() {
           }}>
             <Image
               src="/dashboard-preview.png"
-              alt="Tokna Dashboard — AI cost intelligence across 8 verticals"
+              alt="Tokna Dashboard — AI cost engineering automation across 8 verticals"
               width={1200}
               height={1000}
               style={{ width: '100%', height: 'auto', display: 'block' }}

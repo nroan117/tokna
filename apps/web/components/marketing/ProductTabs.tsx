@@ -329,7 +329,7 @@ export default function ProductTabs() {
             fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 800, color: '#111827',
             margin: 0, lineHeight: 1.2,
           }}>
-            Everything you need to optimize your AI stack
+            Everything you need to automate AI cost engineering
           </h2>
         </div>
 

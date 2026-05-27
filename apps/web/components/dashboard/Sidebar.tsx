@@ -3,15 +3,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { label: 'Overview',           to: '/dashboard',                    exact: true },
-  { label: 'Model Selection',    to: '/dashboard/model-selection',    exact: false },
-  { label: 'Inference Infra',    to: '/dashboard/inference-infra',    exact: false },
-  { label: 'System Performance', to: '/dashboard/system-performance', exact: false },
-  { label: 'Token Efficiency',   to: '/dashboard/token-efficiency',   exact: false },
-  { label: 'Agentic Workflows',  to: '/dashboard/agentic-workflows',  exact: false },
-  { label: 'Retrieval (RAG)',    to: '/dashboard/retrieval-rag',      exact: false },
-  { label: 'Developer Tooling',  to: '/dashboard/developer-tooling',  exact: false },
-  { label: 'Observability',      to: '/dashboard/observability',      exact: false },
+  { label: 'Overview',      to: '/dashboard',                   exact: true },
+  { label: 'Models & APIs', to: '/dashboard/model-selection',   exact: false },
+  { label: 'Infrastructure', to: '/dashboard/inference-infra',  exact: false },
+  { label: 'Development',   to: '/dashboard/agentic-workflows', exact: false },
+  { label: 'Observability', to: '/dashboard/observability',     exact: false },
 ];
 
 export default function Sidebar() {
@@ -53,7 +49,7 @@ export default function Sidebar() {
           ⚡ Tokna
         </div>
         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-          Cost Intelligence
+          Cost Engineering
         </div>
       </div>
 

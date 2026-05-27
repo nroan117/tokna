@@ -8,7 +8,7 @@ export default function AboutPage() {
           About Tokna
         </h1>
         <p style={{ fontSize: '1.125rem', color: '#6b7280', lineHeight: 1.7 }}>
-          Tokna is an AI-powered cloud cost optimization platform built by engineers who&apos;ve seen the waste firsthand.
+          Tokna is an AI cost engineering automation platform built by engineers who&apos;ve seen the waste firsthand.
           We help engineering teams catch LLM cost regressions before they reach production.
         </p>
       </main>
