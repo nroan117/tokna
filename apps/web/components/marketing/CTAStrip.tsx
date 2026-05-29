@@ -27,6 +27,7 @@ export default function CTAStrip() {
           }}>
             Book a Demo
           </Link>
+          {/*
           <Link href="/docs/intro" style={{
             display: 'inline-flex', alignItems: 'center',
             padding: '0.875rem 2rem',
@@ -38,6 +39,7 @@ export default function CTAStrip() {
           }}>
             Try Free
           </Link>
+          */}
         </div>
         <p style={{ fontSize: '0.8125rem', color: '#6b7280' }}>
           ✓ 135+ rules &nbsp;·&nbsp; ✓ CI/CD native &nbsp;·&nbsp; ✓ Open source core

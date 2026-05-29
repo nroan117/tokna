@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+/*
 const columns = [
   {
     title: 'Product',
@@ -35,6 +38,7 @@ const columns = [
     ],
   },
 ];
+*/
 
 export default function SiteFooter() {
   return (
@@ -43,6 +47,7 @@ export default function SiteFooter() {
       padding: '4rem 1.5rem 2rem',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/*
         <div className="footer-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
@@ -75,6 +80,7 @@ export default function SiteFooter() {
             </div>
           ))}
         </div>
+        */}
 
         <div style={{
           borderTop: '1px solid #1f2937',
@@ -83,9 +89,15 @@ export default function SiteFooter() {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
-            © 2026 Tokna. All rights reserved.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+              © 2026 Tokna. All rights reserved.
+            </p>
+            <Link href="/contact" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none' }}>
+              Contact
+            </Link>
+          </div>
+          {/*
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             <a href="https://github.com" target="_blank" rel="noopener noreferrer"
               style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none' }}>
@@ -96,6 +108,7 @@ export default function SiteFooter() {
               LinkedIn
             </a>
           </div>
+          */}
         </div>
       </div>
     </footer>

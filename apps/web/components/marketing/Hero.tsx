@@ -76,6 +76,7 @@ export default function Hero() {
             }}>
               Book a Demo
             </Link>
+            {/*
             <Link href="/docs/intro" style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -90,6 +91,7 @@ export default function Hero() {
             }}>
               Try Free
             </Link>
+            */}
           </div>
           <p style={{
             fontSize: '0.8125rem',
