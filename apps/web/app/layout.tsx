@@ -9,9 +9,17 @@ export const metadata: Metadata = {
   title: 'Tokna — Automate AI Cost Engineering',
   description: 'Automatically reduce AI cost waste so you can focus on building. Prevent regressions before they ship with CI/CD native guardrails.',
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-144.png', sizes: '144x144', type: 'image/png' },
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
   },
   openGraph: {
     title: 'Tokna — Automate AI Cost Engineering',
