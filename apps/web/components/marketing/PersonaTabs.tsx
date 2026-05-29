@@ -9,7 +9,7 @@ const tabs = [
     description:
       'You need automated cost engineering for LLM workloads before they blow your budget. Tokna gives you shift-left cost automation without requiring manual intervention.',
     bullets: [
-      'Catch regressions before production — not after the bill arrives',
+      'Prevent regressions before production — not after the bill arrives',
       'Application-level cost attribution (not just cloud billing)',
       'Continuous monitoring in CI/CD pipelines',
       'Actionable findings, not raw metrics',
@@ -33,7 +33,7 @@ const tabs = [
     label: 'For Developers',
     subtitle: 'Speed & Feedback',
     description:
-      'You want to ship fast without accidentally introducing a $10k/month token explosion. Tokna catches it in your PR so you never get paged for it.',
+      'You want to ship fast without accidentally introducing a $10k/month token explosion. Tokna prevents it in your PR so you never get paged for it.',
     bullets: [
       'Cost feedback in the PR, not post-incident',
       'Specific line-level findings',

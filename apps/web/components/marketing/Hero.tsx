@@ -49,7 +49,7 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Catch AI cost waste
+            Prevent AI cost waste
             <br />
             <span style={{ color: '#f97316' }}>before it builds & before it ships</span>
           </h1>

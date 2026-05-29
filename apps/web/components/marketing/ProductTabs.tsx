@@ -273,7 +273,7 @@ const TABS = [
   {
     id: 'cicd-integration',
     label: 'CI/CD Integration',
-    eyebrow: 'Catch regressions in every pull request automatically',
+    eyebrow: 'Prevent regressions in every pull request automatically',
     description: 'Drop-in GitHub Actions integration — zero config for common setups',
     bullets: [
       'GitHub Actions native support',

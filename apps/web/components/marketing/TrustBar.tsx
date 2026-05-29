@@ -22,7 +22,7 @@ export default function TrustBar() {
     }}>
       <div style={{ textAlign: 'center', marginBottom: '1.25rem', padding: '0 1.5rem' }}>
         <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0, letterSpacing: '0.02em' }}>
-          Engineering teams building <strong style={{ color: '#374151', fontWeight: 600 }}>AI products</strong> trust Tokna to catch cost waste early
+          Engineering teams building <strong style={{ color: '#374151', fontWeight: 600 }}>AI products</strong> trust Tokna to prevent cost waste early
         </p>
       </div>
       <div style={{
