@@ -34,9 +34,6 @@ export default function Navbar() {
             <Link href="/pricing" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
               Pricing
             </Link>
-            <Link href="/about" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-              About
-            </Link>
           </div>
           <Link href="/contact" style={{
             display: 'inline-flex',
