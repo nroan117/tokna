@@ -30,7 +30,7 @@ export default function ContactPage() {
             lineHeight: 1.6,
             marginBottom: '2.5rem' 
           }}>
-            Interested in seeing how Tokna can help your team prevent AI cost waste before it ships? We'd love to chat.
+            Interested in seeing how Tokna can automatically reduce AI cost waste so you can focus on building? We&apos;d love to chat.
           </p>
           <div style={{
             padding: '2.5rem',

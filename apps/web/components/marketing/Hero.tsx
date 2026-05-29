@@ -49,9 +49,9 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Prevent AI cost waste
+            Automate AI cost engineering
             <br />
-            <span style={{ color: '#f97316' }}>before it builds & before it ships</span>
+            <span style={{ color: '#f97316' }}>so you can focus on building</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',

@@ -12,10 +12,10 @@ export default function CTAStrip() {
           fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 800, color: '#ffffff',
           margin: '0 0 1rem', lineHeight: 1.2,
         }}>
-          Stop AI Cost Waste. Ship Smarter, Automatically.
+          Stop managing AI costs. Start building.
         </h2>
         <p style={{ fontSize: '1.0625rem', color: '#9ca3af', margin: '0 0 2.5rem' }}>
-          Join engineering teams optimizing every token, agent loop, and model call — before it reaches production.
+          Automatically reduce AI cost waste and ship faster with Tokna&apos;s CI/CD native guardrails.
         </p>
         <div className="cta-strip-buttons" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
           <Link href="/contact" style={{
