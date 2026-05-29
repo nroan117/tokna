@@ -49,7 +49,7 @@ export default function ContactPage() {
               Email us
             </p>
             <a 
-              href="mailto:nroan28@gmail.com" 
+              href="mailto:hello@tokna.ai" 
               style={{ 
                 fontSize: '1.5rem', 
                 fontWeight: 700, 
@@ -57,7 +57,7 @@ export default function ContactPage() {
                 textDecoration: 'none'
               }}
             >
-              nroan28@gmail.com
+              hello@tokna.ai
             </a>
           </div>
           <div style={{ marginTop: '3rem' }}>
