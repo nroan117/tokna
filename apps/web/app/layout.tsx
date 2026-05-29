@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://tokna.ai'),
+  alternates: {
+    canonical: '/',
+  },
   title: 'Tokna — Automate AI Cost Engineering',
   description: 'Automatically reduce AI cost waste so you can focus on building. Prevent regressions before they ship with CI/CD native guardrails.',
   icons: {
