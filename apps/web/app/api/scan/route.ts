@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const base = process.env.COST_API_BASE ?? 'https://cost-api-gqiljr3w4q-uc.a.run.app';
-    const r = await fetch(`${base}/v1/scan-repo`, {
+    const r = await fetch(`${base}/api/scan-repo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
