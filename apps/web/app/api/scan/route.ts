@@ -3,7 +3,7 @@ export const maxDuration = 180;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const base = process.env.COST_API_BASE ?? 'https://finops-engine-v1-565959120487.us-central1.run.app';
+    const base = process.env.COST_API_BASE ?? 'https://cost-api-706230423289.us-central1.run.app';
     const r = await fetch(`${base}/v1/scan-repo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -31,6 +31,17 @@ interface ScanResult {
   error: string | null;
 }
 
+interface GroupedFinding {
+  rule_id: string;
+  severity: string;
+  message: string;
+  category: string;
+  count: number;
+  total_monthly_usd: number;
+  models: string[];
+  instances: Finding[];
+}
+
 type Status = 'idle' | 'loading' | 'error' | 'results';
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -40,8 +51,89 @@ const SEVERITY_COLORS: Record<string, string> = {
   low: '#6b7280',
 };
 
+const SEVERITY_WEIGHT: Record<string, number> = {
+  critical: 3,
+  high: 2,
+  medium: 1,
+  low: 0.5,
+};
+
+const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'];
+
 function severityColor(sev: string): string {
   return SEVERITY_COLORS[sev.toLowerCase()] ?? '#6b7280';
+}
+
+function getCategory(ruleId: string): string {
+  const id = ruleId.toLowerCase();
+  if (id.includes('openai')) return 'OpenAI';
+  if (id.includes('anthropic') || id.includes('claude')) return 'Anthropic';
+  if (id.includes('gemini') || id.includes('google')) return 'Google';
+  if (id.includes('langchain')) return 'LangChain';
+  if (id.includes('embedding')) return 'Embeddings';
+  if (id.includes('cache')) return 'Caching';
+  if (id.includes('token') || id.includes('context')) return 'Tokens / Context';
+  if (id.includes('retry') || id.includes('loop') || id.includes('recursion')) return 'Loops & Retries';
+  if (id.includes('output') || id.includes('response')) return 'Output Caps';
+  if (id.includes('model')) return 'Model Config';
+  return 'General';
+}
+
+function highestSeverity(severities: string[]): string {
+  for (const s of SEVERITY_ORDER) {
+    if (severities.some((x) => x.toLowerCase() === s)) return s;
+  }
+  return severities[0] ?? 'low';
+}
+
+function groupFindings(findings: Finding[]): GroupedFinding[] {
+  const map = new Map<string, GroupedFinding>();
+  for (const f of findings) {
+    const existing = map.get(f.rule_id);
+    if (existing) {
+      existing.count += 1;
+      existing.total_monthly_usd += f.monthly_cost_usd;
+      existing.instances.push(f);
+      if (!existing.models.includes(f.model_normalized)) {
+        existing.models.push(f.model_normalized);
+      }
+      // update severity to highest
+      existing.severity = highestSeverity([existing.severity, f.severity]);
+    } else {
+      map.set(f.rule_id, {
+        rule_id: f.rule_id,
+        severity: f.severity,
+        message: f.message,
+        category: getCategory(f.rule_id),
+        count: 1,
+        total_monthly_usd: f.monthly_cost_usd,
+        models: [f.model_normalized],
+        instances: [f],
+      });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.total_monthly_usd - a.total_monthly_usd);
+}
+
+function calcScore(grouped: GroupedFinding[], totalRulesChecked: number): number {
+  if (grouped.length === 0) return 100;
+  const maxPenalty = totalRulesChecked * 3;
+  if (maxPenalty === 0) return 100;
+  const actualPenalty = grouped.reduce((sum, g) => {
+    return sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5);
+  }, 0);
+  return Math.round(Math.max(0, 100 - (actualPenalty / maxPenalty) * 100));
+}
+
+function scoreColor(score: number): string {
+  if (score >= 80) return '#16a34a';
+  if (score >= 50) return '#d97706';
+  return '#dc2626';
+}
+
+function truncatePath(filePath: string): string {
+  const parts = filePath.replace(/\\/g, '/').split('/');
+  return parts.slice(-2).join('/');
 }
 
 export default function TryItPage() {
@@ -50,12 +142,26 @@ export default function TryItPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
+
+  function toggleRule(ruleId: string) {
+    setExpandedRules((prev) => {
+      const next = new Set(prev);
+      if (next.has(ruleId)) {
+        next.delete(ruleId);
+      } else {
+        next.add(ruleId);
+      }
+      return next;
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus('loading');
     setError('');
     setResult(null);
+    setExpandedRules(new Set());
     try {
       const r = await fetch('/api/scan', {
         method: 'POST',
@@ -76,9 +182,29 @@ export default function TryItPage() {
     }
   }
 
+  // Keep for compatibility
   const sortedFindings = result
     ? [...result.findings].sort((a, b) => b.monthly_cost_usd - a.monthly_cost_usd)
     : [];
+  void sortedFindings;
+
+  const groupedFindings: GroupedFinding[] = result ? groupFindings(result.findings) : [];
+
+  const score = result
+    ? calcScore(groupedFindings, result.coverage_summary.total_rules_checked)
+    : 100;
+
+  // SVG gauge math — circumference of circle r=36
+  const gaugeCircumference = 2 * Math.PI * 36;
+  const gaugeDashOffset = gaugeCircumference * (1 - score / 100);
+
+  // Severity counts for the summary bar
+  const severityCounts = groupedFindings.reduce<Record<string, number>>((acc, g) => {
+    const s = g.severity.toLowerCase();
+    acc[s] = (acc[s] ?? 0) + g.count;
+    return acc;
+  }, {});
+  const totalSeverityCount = Object.values(severityCounts).reduce((a, b) => a + b, 0);
 
   return (
     <main style={{ background: '#ffffff', minHeight: '70vh', padding: '4rem 1.5rem' }}>
@@ -212,37 +338,168 @@ export default function TryItPage() {
 
         {status === 'results' && result && (
           <div>
-            {result.total_monthly_usd > 0 ? (
-              <div style={{
-                padding: '1.25rem 1.5rem',
-                background: '#fff7ed',
-                border: '1px solid #fed7aa',
-                borderRadius: '0.75rem',
-                marginBottom: '1.5rem',
-              }}>
-                <div style={{ fontSize: '1.375rem', fontWeight: 800, color: '#ea580c' }}>
-                  💸 Estimated +${result.total_monthly_usd}/month
+            {/* ── 1. Top summary cards ── */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+              {/* Card 1 — Cost Impact */}
+              {result.total_monthly_usd > 0 ? (
+                <div style={{
+                  flex: '1 1 200px',
+                  padding: '1.25rem 1.5rem',
+                  background: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.75rem',
+                }}>
+                  <div style={{ fontSize: '1.625rem', fontWeight: 800, color: '#ea580c', lineHeight: 1.1 }}>
+                    💸 +${result.total_monthly_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.375rem' }}>
+                    estimated waste at {result.daily_call_volume} calls/day
+                  </div>
                 </div>
-                <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  (at {result.daily_call_volume} calls/day)
+              ) : (
+                <div style={{
+                  flex: '1 1 200px',
+                  padding: '1.25rem 1.5rem',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '0.75rem',
+                  fontSize: '1.125rem',
+                  fontWeight: 700,
+                  color: '#16a34a',
+                }}>
+                  ✅ No cost waste detected
+                </div>
+              )}
+
+              {/* Card 2 — Cost Efficiency Score */}
+              <div style={{
+                flex: '1 1 200px',
+                padding: '1.25rem 1.5rem',
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1.25rem',
+              }}>
+                {/* SVG Gauge */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <svg width="88" height="88" viewBox="0 0 88 88" style={{ overflow: 'visible' }}>
+                    {/* Background ring */}
+                    <circle
+                      cx="44"
+                      cy="44"
+                      r="36"
+                      fill="none"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                    />
+                    {/* Score arc */}
+                    <circle
+                      cx="44"
+                      cy="44"
+                      r="36"
+                      fill="none"
+                      stroke={scoreColor(score)}
+                      strokeWidth="8"
+                      strokeDasharray={`${gaugeCircumference}`}
+                      strokeDashoffset={`${gaugeDashOffset}`}
+                      strokeLinecap="round"
+                      transform="rotate(-90 44 44)"
+                      style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+                    />
+                    {/* Score label */}
+                    <text
+                      x="44"
+                      y="44"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      style={{ fontSize: '1.25rem', fontWeight: 800, fill: scoreColor(score) }}
+                    >
+                      {score}
+                    </text>
+                  </svg>
+                  <div style={{ fontSize: '0.6875rem', color: '#6b7280', marginTop: '0.375rem', textAlign: 'center', fontWeight: 600 }}>
+                    Cost Efficiency Score
+                  </div>
+                </div>
+                {/* Right stats */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
+                    {groupedFindings.length} rule{groupedFindings.length !== 1 ? 's' : ''} triggered
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>
+                    out of {result.coverage_summary.total_rules_checked} patterns checked
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div style={{
-                padding: '1.25rem 1.5rem',
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '0.75rem',
-                marginBottom: '1.5rem',
-                fontSize: '1.125rem',
-                fontWeight: 700,
-                color: '#16a34a',
-              }}>
-                ✅ No cost issues found across {result.coverage_summary.total_rules_checked} patterns checked
+            </div>
+
+            {/* ── 2. Severity summary bar ── */}
+            {totalSeverityCount > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                {/* Colored bar */}
+                <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.625rem' }}>
+                  {SEVERITY_ORDER.map((sev) => {
+                    const count = severityCounts[sev] ?? 0;
+                    if (count === 0) return null;
+                    const pct = (count / totalSeverityCount) * 100;
+                    return (
+                      <div
+                        key={sev}
+                        style={{
+                          width: `${pct}%`,
+                          background: SEVERITY_COLORS[sev],
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+                {/* Legend */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
+                  {SEVERITY_ORDER.map((sev) => {
+                    const count = severityCounts[sev] ?? 0;
+                    if (count === 0) return null;
+                    return (
+                      <div key={sev} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: SEVERITY_COLORS[sev],
+                          flexShrink: 0,
+                        }} />
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'capitalize' }}>
+                          {sev}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151' }}>
+                          {count}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
-            {sortedFindings.length > 0 && (
+            {/* ── 4. Truncation notice (above table) ── */}
+            {result.truncated && (
+              <div style={{
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: '0.5rem',
+                padding: '0.625rem 1rem',
+                fontSize: '0.8125rem',
+                color: '#92400e',
+                marginBottom: '0.75rem',
+              }}>
+                ⚡ Showing top results only — upgrade for unlimited scanning
+              </div>
+            )}
+
+            {/* ── 3. Findings table (grouped) ── */}
+            {groupedFindings.length > 0 && (
               <div style={{
                 border: '1px solid #e5e7eb',
                 borderRadius: '0.75rem',
@@ -252,76 +509,173 @@ export default function TryItPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Finding</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>File</th>
+                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Rule</th>
+                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Category</th>
                       <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Severity</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Model</th>
+                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Occurrences</th>
                       <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Est. Monthly Impact</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedFindings.map((f, i) => (
-                      <tr key={`${f.rule_id}-${f.file}-${f.line}-${i}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '0.75rem 1rem', maxWidth: '340px' }}>
-                          <code style={{
-                            fontSize: '0.8125rem',
-                            color: '#111827',
-                            background: '#f9fafb',
-                            padding: '0.125rem 0.375rem',
-                            borderRadius: '0.25rem',
-                          }}>
-                            {f.rule_id}
-                          </code>
-                          {f.message && (
-                            <div style={{
-                              marginTop: '0.4rem',
-                              fontSize: '0.8125rem',
-                              color: '#6b7280',
-                              lineHeight: 1.45,
-                            }}>
-                              {f.message}
-                            </div>
+                    {groupedFindings.map((g) => {
+                      const isExpanded = expandedRules.has(g.rule_id);
+                      return (
+                        <>
+                          <tr
+                            key={g.rule_id}
+                            onClick={() => toggleRule(g.rule_id)}
+                            style={{
+                              borderBottom: isExpanded ? 'none' : '1px solid #f1f5f9',
+                              cursor: 'pointer',
+                              background: isExpanded ? '#fafafa' : undefined,
+                            }}
+                          >
+                            <td style={{ padding: '0.75rem 1rem', maxWidth: '300px' }}>
+                              <code style={{
+                                fontSize: '0.8125rem',
+                                color: '#111827',
+                                background: '#f3f4f6',
+                                padding: '0.125rem 0.375rem',
+                                borderRadius: '0.25rem',
+                              }}>
+                                {g.rule_id}
+                              </code>
+                              {g.message && (
+                                <div style={{
+                                  marginTop: '0.375rem',
+                                  fontSize: '0.8125rem',
+                                  color: '#6b7280',
+                                  lineHeight: 1.45,
+                                }}>
+                                  {g.message}
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem' }}>
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '0.125rem 0.5rem',
+                                fontSize: '0.75rem',
+                                background: '#f3f4f6',
+                                color: '#6b7280',
+                                borderRadius: '999px',
+                                whiteSpace: 'nowrap',
+                              }}>
+                                {g.category}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem' }}>
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '0.125rem 0.5rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                borderRadius: '999px',
+                                color: severityColor(g.severity),
+                                background: `${severityColor(g.severity)}1a`,
+                                textTransform: 'capitalize',
+                              }}>
+                                {g.severity}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                              {g.count} file{g.count !== 1 ? 's' : ''}
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                                <span style={{
+                                  fontWeight: 700,
+                                  color: g.total_monthly_usd > 0 ? '#ea580c' : '#6b7280',
+                                }}>
+                                  {g.total_monthly_usd > 0
+                                    ? `+$${g.total_monthly_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo`
+                                    : '—'}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: '#9ca3af', userSelect: 'none' }}>
+                                  {isExpanded ? '▲' : '▼'}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {isExpanded && (
+                            <tr key={`${g.rule_id}-expanded`} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td colSpan={5} style={{ padding: 0 }}>
+                                <div style={{
+                                  background: '#f8fafc',
+                                  padding: '0.75rem 1rem',
+                                  borderTop: '1px solid #e5e7eb',
+                                }}>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                                    <thead>
+                                      <tr>
+                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>File</th>
+                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>Line</th>
+                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>Model</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {g.instances.map((inst, idx) => (
+                                        <tr key={`${inst.file}-${inst.line}-${idx}`}>
+                                          <td style={{ padding: '0.3125rem 0.5rem', fontFamily: 'monospace', color: '#374151', fontSize: '0.75rem' }}>
+                                            {truncatePath(inst.file)}
+                                          </td>
+                                          <td style={{ padding: '0.3125rem 0.5rem', color: '#9ca3af', fontFamily: 'monospace', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                            :{inst.line}
+                                          </td>
+                                          <td style={{ padding: '0.3125rem 0.5rem', color: '#374151', fontSize: '0.75rem' }}>
+                                            {inst.model_normalized}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </td>
+                            </tr>
                           )}
-                        </td>
-                        <td style={{ padding: '0.75rem 1rem', color: '#9ca3af', fontFamily: 'monospace', fontSize: '0.6875rem', maxWidth: '160px', wordBreak: 'break-all', lineHeight: 1.4 }}>
-                          {f.file}:{f.line}
-                        </td>
-                        <td style={{ padding: '0.75rem 1rem' }}>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '0.125rem 0.5rem',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            borderRadius: '999px',
-                            color: severityColor(f.severity),
-                            background: `${severityColor(f.severity)}1a`,
-                            textTransform: 'capitalize',
-                          }}>
-                            {f.severity}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.75rem 1rem', color: '#111827' }}>
-                          {f.model_normalized}{f.model_is_estimate ? ' (est.)' : ''}
-                        </td>
-                        <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#111827' }}>
-                          +${f.monthly_cost_usd.toFixed(2)}/mo
-                        </td>
-                      </tr>
-                    ))}
+                        </>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
 
+            {/* ── 5. Footer ── */}
             <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem' }}>
               {result.coverage_summary.total_rules_checked} cost patterns checked ·{' '}
               {result.finding_count} issue(s) found
             </div>
 
-            <p style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '1.25rem' }}>
               Findings are real Semgrep matches on your code. Dollar figures are directional
               estimates (the same model the CI product uses).
             </p>
+
+            <button
+              onClick={() => {
+                setStatus('idle');
+                setResult(null);
+                setError('');
+                setExpandedRules(new Set());
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.625rem 1.5rem',
+                background: '#f97316',
+                color: '#ffffff',
+                fontWeight: 600,
+                fontSize: '0.9375rem',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+              }}
+            >
+              Scan another repo →
+            </button>
           </div>
         )}
       </div>
