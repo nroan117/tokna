@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Finding {
   rule_id: string;
@@ -143,6 +143,8 @@ export default function TryItPage() {
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
+  const [animScore, setAnimScore] = useState(0);
+  const [animOffset, setAnimOffset] = useState(0);
 
   function toggleRule(ruleId: string) {
     setExpandedRules((prev) => {
@@ -190,13 +192,26 @@ export default function TryItPage() {
 
   const groupedFindings: GroupedFinding[] = result ? groupFindings(result.findings) : [];
 
-  const score = result
-    ? calcScore(groupedFindings, result.coverage_summary.total_rules_checked)
-    : 100;
-
-  // SVG gauge math — circumference of circle r=36
-  const gaugeCircumference = 2 * Math.PI * 36;
-  const gaugeDashOffset = gaugeCircumference * (1 - score / 100);
+  useEffect(() => {
+    if (status !== 'results' || !result) return;
+    const score = calcScore(groupedFindings, result.coverage_summary.total_rules_checked);
+    const circumference = 2 * Math.PI * 36;
+    const targetOffset = circumference * (1 - score / 100);
+    const start = performance.now();
+    const duration = 1100;
+    let rafId: number;
+    function tick(now: number) {
+      const raw = Math.min((now - start) / duration, 1);
+      const t = 1 - Math.pow(1 - raw, 3); // easeOutCubic
+      setAnimScore(Math.round(t * score));
+      setAnimOffset(circumference - t * (circumference - targetOffset));
+      if (raw < 1) rafId = requestAnimationFrame(tick);
+    }
+    setAnimScore(0);
+    setAnimOffset(circumference);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [status, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Severity counts for the summary bar
   const severityCounts = groupedFindings.reduce<Record<string, number>>((acc, g) => {
@@ -384,41 +399,57 @@ export default function TryItPage() {
               }}>
                 {/* SVG Gauge */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                  <svg width="88" height="88" viewBox="0 0 88 88" style={{ overflow: 'visible' }}>
-                    {/* Background ring */}
-                    <circle
-                      cx="44"
-                      cy="44"
-                      r="36"
-                      fill="none"
-                      stroke="#e5e7eb"
-                      strokeWidth="8"
-                    />
-                    {/* Score arc */}
-                    <circle
-                      cx="44"
-                      cy="44"
-                      r="36"
-                      fill="none"
-                      stroke={scoreColor(score)}
-                      strokeWidth="8"
-                      strokeDasharray={`${gaugeCircumference}`}
-                      strokeDashoffset={`${gaugeDashOffset}`}
-                      strokeLinecap="round"
-                      transform="rotate(-90 44 44)"
-                      style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-                    />
-                    {/* Score label */}
-                    <text
-                      x="44"
-                      y="44"
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      style={{ fontSize: '1.25rem', fontWeight: 800, fill: scoreColor(score) }}
-                    >
-                      {score}
-                    </text>
-                  </svg>
+                  {(() => {
+                    const circumference = 2 * Math.PI * 36;
+                    const score = calcScore(groupedFindings, result.coverage_summary.total_rules_checked);
+                    // Gradient colors based on score
+                    const gradStart = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+                    const gradEnd   = score >= 80 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
+                    const textColor = score >= 80 ? '#059669' : score >= 50 ? '#d97706' : '#dc2626';
+                    return (
+                      <svg width="88" height="88" viewBox="0 0 88 88" style={{ display: 'block', overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="score-arc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor={gradStart} />
+                            <stop offset="100%" stopColor={gradEnd} />
+                          </linearGradient>
+                          <filter id="score-glow">
+                            <feGaussianBlur stdDeviation="2" result="blur" />
+                            <feMerge>
+                              <feMergeNode in="blur" />
+                              <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                          </filter>
+                        </defs>
+                        {/* Track */}
+                        <circle cx="44" cy="44" r="36" fill="none" stroke="#f1f5f9" strokeWidth="7" />
+                        {/* Animated arc */}
+                        <circle
+                          cx="44" cy="44" r="36"
+                          fill="none"
+                          stroke="url(#score-arc-grad)"
+                          strokeWidth="7"
+                          strokeLinecap="round"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={animOffset}
+                          transform="rotate(-90 44 44)"
+                          filter="url(#score-glow)"
+                          style={{ transition: 'none' }}
+                        />
+                        {/* Score number */}
+                        <text
+                          x="44" y="50"
+                          textAnchor="middle"
+                          fontSize="22"
+                          fontWeight="800"
+                          fill={textColor}
+                          fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+                        >
+                          {animScore}
+                        </text>
+                      </svg>
+                    );
+                  })()}
                   <div style={{ fontSize: '0.6875rem', color: '#6b7280', marginTop: '0.375rem', textAlign: 'center', fontWeight: 600 }}>
                     Cost Efficiency Score
                   </div>
