@@ -44,7 +44,7 @@ function severityColor(sev: string): string {
   return SEVERITY_COLORS[sev.toLowerCase()] ?? '#6b7280';
 }
 
-export default function TryNowPage() {
+export default function TryItPage() {
   const [repoUrl, setRepoUrl] = useState('');
   const [dailyCalls, setDailyCalls] = useState(100);
   const [status, setStatus] = useState<Status>('idle');
