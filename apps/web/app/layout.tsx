@@ -44,6 +44,59 @@ export const metadata: Metadata = {
   },
 };
 
+const schemaOrg = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://tokna.ai/#organization',
+      name: 'Tokna',
+      url: 'https://tokna.ai',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://tokna.ai/favicon-192.png',
+      },
+      description: 'Tokna automates AI cost engineering — preventing LLM cost regressions before they ship with CI/CD native guardrails and 220+ cost rules.',
+      foundingDate: '2026',
+      sameAs: [
+        'https://github.com/nroan117/tokna',
+      ],
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': 'https://tokna.ai/#software',
+      name: 'Tokna',
+      url: 'https://tokna.ai',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Web, CI/CD, GitHub Actions',
+      description: 'AI cost regression detection for LLM applications. 220+ built-in cost rules, CI/CD native, zero config required.',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        description: 'Free open source core. Paid tiers available.',
+      },
+      publisher: {
+        '@id': 'https://tokna.ai/#organization',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://tokna.ai/#website',
+      url: 'https://tokna.ai',
+      name: 'Tokna',
+      publisher: {
+        '@id': 'https://tokna.ai/#organization',
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://tokna.ai/tryit?q={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -51,6 +104,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );
