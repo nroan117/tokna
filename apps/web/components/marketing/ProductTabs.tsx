@@ -204,7 +204,7 @@ const RuleEngineMockup: ReactNode = (
     <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', gap: '0.625rem' }}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', padding: '0.5rem 0.75rem' }}>
         <span style={{ fontSize: '0.875rem' }}>🔍</span>
-        <span style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>Search 135+ rules...</span>
+        <span style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>Search 220+ rules...</span>
       </div>
       <button style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', padding: '0.5rem 0.75rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer', fontWeight: 500 }}>
         All ▾
@@ -302,7 +302,7 @@ const TABS = [
     eyebrow: 'Define and enforce cost guardrails as code',
     description: 'Write custom rules in YAML — ship them to every repo via policy-as-code',
     bullets: [
-      '135+ built-in cost rules',
+      '220+ built-in cost rules',
       'Custom YAML rule authoring',
       'Per-team rule overrides',
       'Semgrep-compatible patterns',

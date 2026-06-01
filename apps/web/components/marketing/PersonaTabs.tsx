@@ -23,7 +23,7 @@ const tabs = [
       'You need guardrails that run in CI/CD without slowing down your teams. Tokna integrates in minutes and runs silently until something breaks.',
     bullets: [
       'Drop-in GitHub Action — 5-minute setup',
-      '135+ rules, zero config required',
+      '220+ rules, zero config required',
       'PR comments with cost impact estimates',
       'Works with any LLM provider',
     ],

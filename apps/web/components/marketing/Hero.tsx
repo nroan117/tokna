@@ -99,7 +99,7 @@ export default function Hero() {
             margin: 0,
             letterSpacing: '0.02em',
           }}>
-            135+ cost rules · Used in CI/CD pipelines
+            220+ cost rules · Used in CI/CD pipelines
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 const stats = [
   {
-    number: '135+',
+    number: '220+',
     label: 'Cost Rules',
     description: 'Covering token limits, retry loops, model waste, and more',
   },

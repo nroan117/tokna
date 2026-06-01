@@ -42,7 +42,7 @@ export default function CTAStrip() {
           */}
         </div>
         <p style={{ fontSize: '0.8125rem', color: '#6b7280' }}>
-          ✓ 135+ rules &nbsp;·&nbsp; ✓ CI/CD native &nbsp;·&nbsp; ✓ Open source core
+          ✓ 220+ rules &nbsp;·&nbsp; ✓ CI/CD native &nbsp;·&nbsp; ✓ Open source core
         </p>
       </div>
     </section>
