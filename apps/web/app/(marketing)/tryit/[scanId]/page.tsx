@@ -1,6 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface Finding {
   rule_id: string;
@@ -21,15 +24,20 @@ interface CoverageSummary {
   total_findings: number;
 }
 
-interface ScanResult {
+interface ScanStatus {
+  scan_id: string;
   repo_url: string;
   daily_call_volume: number;
+  status: 'queued' | 'cloning' | 'scanning' | 'complete' | 'failed';
+  progress: number; // 0-100
+  findings: Finding[];
+  error: string | null;
   total_monthly_usd: number;
   finding_count: number;
-  findings: Finding[];
   coverage_summary: CoverageSummary;
   truncated: boolean;
-  error: string | null;
+  created_at: string;
+  finished_at: string | null;
 }
 
 interface GroupedFinding {
@@ -43,7 +51,7 @@ interface GroupedFinding {
   instances: Finding[];
 }
 
-type Status = 'idle' | 'loading' | 'error' | 'results';
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const SEVERITY_COLORS: Record<string, string> = {
   critical: '#dc2626',
@@ -60,6 +68,18 @@ const SEVERITY_WEIGHT: Record<string, number> = {
 };
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'];
+
+const STATUS_LABELS: Record<string, string> = {
+  queued: 'Queued — waiting to start…',
+  cloning: 'Cloning repository…',
+  scanning: 'Running cost analysis…',
+  complete: 'Scan complete!',
+  failed: 'Scan failed',
+};
+
+const POLL_INTERVAL_MS = 2500;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function severityColor(sev: string): string {
   return SEVERITY_COLORS[sev.toLowerCase()] ?? '#6b7280';
@@ -98,7 +118,6 @@ function groupFindings(findings: Finding[]): GroupedFinding[] {
       if (!existing.models.includes(f.model_normalized)) {
         existing.models.push(f.model_normalized);
       }
-      // update severity to highest
       existing.severity = highestSeverity([existing.severity, f.severity]);
     } else {
       map.set(f.rule_id, {
@@ -120,16 +139,11 @@ function calcScore(grouped: GroupedFinding[], totalRulesChecked: number): number
   if (grouped.length === 0) return 100;
   const maxPenalty = totalRulesChecked * 3;
   if (maxPenalty === 0) return 100;
-  const actualPenalty = grouped.reduce((sum, g) => {
-    return sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5);
-  }, 0);
+  const actualPenalty = grouped.reduce(
+    (sum, g) => sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5),
+    0,
+  );
   return Math.round(Math.max(0, 100 - (actualPenalty / maxPenalty) * 100));
-}
-
-function scoreColor(score: number): string {
-  if (score >= 80) return '#16a34a';
-  if (score >= 50) return '#d97706';
-  return '#dc2626';
 }
 
 function truncatePath(filePath: string): string {
@@ -137,91 +151,106 @@ function truncatePath(filePath: string): string {
   return parts.slice(-2).join('/');
 }
 
-export default function TryItPage() {
-  const router = useRouter();
-  const [repoUrl, setRepoUrl] = useState('');
-  const [dailyCalls, setDailyCalls] = useState(100);
-  const [status, setStatus] = useState<Status>('idle');
-  const [error, setError] = useState<string>('');
-  const [result, setResult] = useState<ScanResult | null>(null);
+// ── Component ────────────────────────────────────────────────────────────────
+
+export default function ScanResultPage() {
+  const params = useParams();
+  const scanId = typeof params.scanId === 'string' ? params.scanId : String(params.scanId ?? '');
+
+  const [scan, setScan] = useState<ScanStatus | null>(null);
+  const [fetchError, setFetchError] = useState<string>('');
   const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
   const [animScore, setAnimScore] = useState(0);
   const [animOffset, setAnimOffset] = useState(0);
+  const [smoothProgress, setSmoothProgress] = useState(0);
 
-  function toggleRule(ruleId: string) {
-    setExpandedRules((prev) => {
-      const next = new Set(prev);
-      if (next.has(ruleId)) {
-        next.delete(ruleId);
-      } else {
-        next.add(ruleId);
-      }
-      return next;
-    });
-  }
+  const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTerminal = scan?.status === 'complete' || scan?.status === 'failed';
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus('loading');
-    setError('');
-    setResult(null);
-    setExpandedRules(new Set());
+  // Score animation (fires once when scan completes)
+  const didAnimateRef = useRef(false);
+
+  // ── Polling ────────────────────────────────────────────────────────────────
+
+  const fetchStatus = async () => {
     try {
-      const r = await fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo_url: repoUrl, daily_call_volume: dailyCalls }),
-      });
+      const r = await fetch(`/api/scan/${scanId}`);
       const data = await r.json();
-      if (!r.ok || data.error) {
-        setError(data.error || `Request failed (${r.status})`);
-        setStatus('error');
+      if (!r.ok) {
+        setFetchError(data.error ?? `Failed to fetch scan status (${r.status})`);
         return;
       }
-      // Async path: backend returns 202 + scan_id → redirect to progress page
-      if (r.status === 202 && data.scan_id) {
-        router.push(`/tryit/${data.scan_id}`);
-        return;
-      }
-      // Legacy synchronous path (200 with full results)
-      setResult(data as ScanResult);
-      setStatus('results');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
-      setStatus('error');
+      setScan(data as ScanStatus);
+      setSmoothProgress((prev) => Math.max(prev, data.progress ?? 0));
+    } catch {
+      setFetchError('Could not reach server. Retrying…');
     }
-  }
-
-  // Keep for compatibility
-  const sortedFindings = result
-    ? [...result.findings].sort((a, b) => b.monthly_cost_usd - a.monthly_cost_usd)
-    : [];
-  void sortedFindings;
-
-  const groupedFindings: GroupedFinding[] = result ? groupFindings(result.findings) : [];
+  };
 
   useEffect(() => {
-    if (status !== 'results' || !result) return;
-    const score = calcScore(groupedFindings, result.coverage_summary.total_rules_checked);
+    if (!scanId) return;
+
+    fetchStatus();
+
+    const schedule = () => {
+      pollingRef.current = setTimeout(async () => {
+        await fetchStatus();
+        // Re-read scan from closure is stale — we rely on the state update
+      }, POLL_INTERVAL_MS);
+    };
+
+    // Keep polling until terminal
+    const interval = setInterval(async () => {
+      const r = await fetch(`/api/scan/${scanId}`);
+      if (!r.ok) return;
+      const data: ScanStatus = await r.json();
+      setScan(data);
+      setSmoothProgress((prev) => Math.max(prev, data.progress ?? 0));
+      if (data.status === 'complete' || data.status === 'failed') {
+        clearInterval(interval);
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      clearInterval(interval);
+      if (pollingRef.current) clearTimeout(pollingRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanId]);
+
+  // ── Score animation on completion ─────────────────────────────────────────
+
+  useEffect(() => {
+    if (scan?.status !== 'complete' || didAnimateRef.current) return;
+    didAnimateRef.current = true;
+
+    const grouped = groupFindings(scan.findings ?? []);
+    const score = calcScore(grouped, scan.coverage_summary?.total_rules_checked ?? 0);
     const circumference = 2 * Math.PI * 36;
     const targetOffset = circumference * (1 - score / 100);
     const start = performance.now();
     const duration = 1100;
     let rafId: number;
+
     function tick(now: number) {
       const raw = Math.min((now - start) / duration, 1);
-      const t = 1 - Math.pow(1 - raw, 3); // easeOutCubic
+      const t = 1 - Math.pow(1 - raw, 3);
       setAnimScore(Math.round(t * score));
       setAnimOffset(circumference - t * (circumference - targetOffset));
       if (raw < 1) rafId = requestAnimationFrame(tick);
     }
+
     setAnimScore(0);
     setAnimOffset(circumference);
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [status, result]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scan?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Severity counts for the summary bar
+  // ── Derived state ──────────────────────────────────────────────────────────
+
+  const groupedFindings: GroupedFinding[] =
+    scan?.status === 'complete' ? groupFindings(scan.findings ?? []) : [];
+
   const severityCounts = groupedFindings.reduce<Record<string, number>>((acc, g) => {
     const s = g.severity.toLowerCase();
     acc[s] = (acc[s] ?? 0) + g.count;
@@ -229,123 +258,45 @@ export default function TryItPage() {
   }, {});
   const totalSeverityCount = Object.values(severityCounts).reduce((a, b) => a + b, 0);
 
-  return (
-    <main style={{ background: '#ffffff', minHeight: '70vh', padding: '4rem 1.5rem' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{
-          fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-          fontWeight: 800,
-          color: '#111827',
-          lineHeight: 1.15,
-          marginBottom: '1rem',
-        }}>
-          Scan a public repo for LLM cost issues.
-        </h1>
-        <p style={{
-          fontSize: '1.125rem',
-          color: '#6b7280',
-          lineHeight: 1.6,
-          marginBottom: '2.5rem',
-        }}>
-          Paste any public GitHub repo and we&apos;ll run a scan and a cost estimate
-          against your code. No setup, no signup.
-        </p>
+  function toggleRule(ruleId: string) {
+    setExpandedRules((prev) => {
+      const next = new Set(prev);
+      if (next.has(ruleId)) next.delete(ruleId);
+      else next.add(ruleId);
+      return next;
+    });
+  }
 
-        <form onSubmit={handleSubmit} style={{ marginBottom: '2.5rem' }}>
-          <input
-            type="text"
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-            placeholder="https://github.com/owner/repo"
-            required
+  // ── Render: loading skeleton ───────────────────────────────────────────────
+
+  if (!scan && !fetchError) {
+    return (
+      <main style={{ background: '#ffffff', minHeight: '70vh', padding: '4rem 1.5rem' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', color: '#6b7280', paddingTop: '4rem' }}>
+          <span
             style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              fontSize: '1rem',
-              color: '#111827',
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              marginBottom: '1rem',
-              boxSizing: 'border-box',
+              display: 'inline-block',
+              width: '32px',
+              height: '32px',
+              border: '3px solid #e5e7eb',
+              borderTopColor: '#f97316',
+              borderRadius: '50%',
+              animation: 'tokna-spin 0.8s linear infinite',
             }}
           />
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            gap: '1rem',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-              <label
-                htmlFor="daily-calls"
-                style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151' }}
-              >
-                Estimated daily LLM calls
-              </label>
-              <input
-                id="daily-calls"
-                type="number"
-                min={1}
-                value={dailyCalls}
-                onChange={(e) => setDailyCalls(Number(e.target.value))}
-                style={{
-                  width: '180px',
-                  padding: '0.625rem 0.75rem',
-                  fontSize: '0.9375rem',
-                  color: '#111827',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.75rem 1.75rem',
-                background: status === 'loading' ? '#fdba74' : '#f97316',
-                color: '#ffffff',
-                fontWeight: 600,
-                fontSize: '0.9375rem',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {status === 'loading' ? 'Scanning…' : 'Scan'}
-            </button>
-          </div>
-        </form>
+          <p style={{ marginTop: '1rem', fontSize: '1rem' }}>Loading scan…</p>
+          <style>{`@keyframes tokna-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </main>
+    );
+  }
 
-        {status === 'loading' && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            color: '#6b7280',
-            fontSize: '0.9375rem',
-            marginBottom: '2rem',
-          }}>
-            <span
-              style={{
-                width: '18px',
-                height: '18px',
-                border: '2px solid #e5e7eb',
-                borderTopColor: '#f97316',
-                borderRadius: '50%',
-                display: 'inline-block',
-                animation: 'tokna-spin 0.8s linear infinite',
-              }}
-            />
-            Cloning &amp; scanning… this can take ~10–40s
-          </div>
-        )}
+  // ── Render: fetch error ────────────────────────────────────────────────────
 
-        {status === 'error' && (
+  if (fetchError && !scan) {
+    return (
+      <main style={{ background: '#ffffff', minHeight: '70vh', padding: '4rem 1.5rem' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{
             padding: '1rem 1.25rem',
             background: '#fef2f2',
@@ -353,18 +304,162 @@ export default function TryItPage() {
             borderRadius: '0.5rem',
             color: '#dc2626',
             fontSize: '0.9375rem',
-            marginBottom: '2rem',
           }}>
-            {error}
+            {fetchError}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Render: in-progress ────────────────────────────────────────────────────
+
+  const statusLabel = scan ? STATUS_LABELS[scan.status] ?? scan.status : 'Loading…';
+  const progress = smoothProgress;
+
+  return (
+    <main style={{ background: '#ffffff', minHeight: '70vh', padding: '4rem 1.5rem' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        {/* Header */}
+        <h1 style={{
+          fontSize: 'clamp(1.5rem, 3.5vw, 2.25rem)',
+          fontWeight: 800,
+          color: '#111827',
+          lineHeight: 1.15,
+          marginBottom: '0.5rem',
+        }}>
+          {scan?.status === 'complete'
+            ? 'Scan Results'
+            : scan?.status === 'failed'
+              ? 'Scan Failed'
+              : 'Scan in Progress'}
+        </h1>
+        {scan?.repo_url && (
+          <p style={{ fontSize: '0.9375rem', color: '#6b7280', marginBottom: '2rem' }}>
+            <a
+              href={scan.repo_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#f97316', textDecoration: 'none', fontWeight: 500 }}
+            >
+              {scan.repo_url}
+            </a>
+            {' · '}
+            <span style={{ fontSize: '0.8125rem', fontFamily: 'monospace', color: '#9ca3af' }}>
+              {scanId}
+            </span>
+          </p>
+        )}
+
+        {/* ── Progress section (shown while not complete) ── */}
+        {scan?.status !== 'complete' && (
+          <div style={{ marginBottom: '2.5rem' }}>
+            {/* Status label */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '0.875rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: scan?.status === 'failed' ? '#dc2626' : '#374151',
+            }}>
+              {scan?.status !== 'failed' && (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    width: '18px',
+                    height: '18px',
+                    border: '2px solid #e5e7eb',
+                    borderTopColor: '#f97316',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                    animation: 'tokna-spin 0.8s linear infinite',
+                  }}
+                />
+              )}
+              {statusLabel}
+            </div>
+
+            {/* Progress bar */}
+            <div style={{
+              width: '100%',
+              height: '10px',
+              background: '#f1f5f9',
+              borderRadius: '999px',
+              overflow: 'hidden',
+            }}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${progress}%`,
+                  background: scan?.status === 'failed'
+                    ? '#dc2626'
+                    : 'linear-gradient(90deg, #f97316, #fb923c)',
+                  borderRadius: '999px',
+                  transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '0.375rem',
+              fontSize: '0.8125rem',
+              color: '#9ca3af',
+            }}>
+              <span>{progress}%</span>
+              {scan?.status !== 'failed' && (
+                <span>This typically takes 10–40 seconds</span>
+              )}
+            </div>
+
+            {/* Error message */}
+            {scan?.status === 'failed' && scan.error && (
+              <div style={{
+                marginTop: '1.25rem',
+                padding: '1rem 1.25rem',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '0.5rem',
+                color: '#dc2626',
+                fontSize: '0.9375rem',
+              }}>
+                {scan.error}
+              </div>
+            )}
+
+            {/* Scan another button after failure */}
+            {scan?.status === 'failed' && (
+              <a
+                href="/tryit"
+                style={{
+                  display: 'inline-flex',
+                  marginTop: '1.25rem',
+                  alignItems: 'center',
+                  padding: '0.625rem 1.5rem',
+                  background: '#f97316',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: '0.9375rem',
+                  borderRadius: '0.5rem',
+                  textDecoration: 'none',
+                }}
+              >
+                ← Try another repo
+              </a>
+            )}
           </div>
         )}
 
-        {status === 'results' && result && (
+        {/* ── Results (status === complete) ── */}
+        {scan?.status === 'complete' && (
           <div>
-            {/* ── 1. Top summary cards ── */}
+            {/* 1. Top summary cards */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
               {/* Card 1 — Cost Impact */}
-              {result.total_monthly_usd > 0 ? (
+              {scan.total_monthly_usd > 0 ? (
                 <div style={{
                   flex: '1 1 200px',
                   padding: '1.25rem 1.5rem',
@@ -373,10 +468,10 @@ export default function TryItPage() {
                   borderRadius: '0.75rem',
                 }}>
                   <div style={{ fontSize: '1.625rem', fontWeight: 800, color: '#ea580c', lineHeight: 1.1 }}>
-                    💸 +${result.total_monthly_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month
+                    💸 +${scan.total_monthly_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month
                   </div>
                   <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.375rem' }}>
-                    estimated waste at {result.daily_call_volume} calls/day
+                    estimated waste at {scan.daily_call_volume} calls/day
                   </div>
                 </div>
               ) : (
@@ -405,12 +500,10 @@ export default function TryItPage() {
                 alignItems: 'center',
                 gap: '1.25rem',
               }}>
-                {/* SVG Gauge */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
                   {(() => {
                     const circumference = 2 * Math.PI * 36;
-                    const score = calcScore(groupedFindings, result.coverage_summary.total_rules_checked);
-                    // Gradient colors based on score
+                    const score = calcScore(groupedFindings, scan.coverage_summary?.total_rules_checked ?? 0);
                     const gradStart = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
                     const gradEnd   = score >= 80 ? '#6ee7b7' : score >= 50 ? '#fcd34d' : '#fca5a5';
                     const textColor = score >= 80 ? '#059669' : score >= 50 ? '#d97706' : '#dc2626';
@@ -429,9 +522,7 @@ export default function TryItPage() {
                             </feMerge>
                           </filter>
                         </defs>
-                        {/* Track */}
                         <circle cx="44" cy="44" r="36" fill="none" stroke="#f1f5f9" strokeWidth="7" />
-                        {/* Animated arc */}
                         <circle
                           cx="44" cy="44" r="36"
                           fill="none"
@@ -444,7 +535,6 @@ export default function TryItPage() {
                           filter="url(#score-glow)"
                           style={{ transition: 'none' }}
                         />
-                        {/* Score number */}
                         <text
                           x="44" y="50"
                           textAnchor="middle"
@@ -462,59 +552,41 @@ export default function TryItPage() {
                     Cost Efficiency Score
                   </div>
                 </div>
-                {/* Right stats */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
                     {groupedFindings.length} rule{groupedFindings.length !== 1 ? 's' : ''} triggered
                   </div>
                   <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>
-                    out of {result.coverage_summary.total_rules_checked} patterns checked
+                    out of {scan.coverage_summary?.total_rules_checked ?? 0} patterns checked
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── 2. Severity summary bar ── */}
+            {/* 2. Severity summary bar */}
             {totalSeverityCount > 0 && (
               <div style={{ marginBottom: '1.5rem' }}>
-                {/* Colored bar */}
                 <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.625rem' }}>
                   {SEVERITY_ORDER.map((sev) => {
                     const count = severityCounts[sev] ?? 0;
                     if (count === 0) return null;
-                    const pct = (count / totalSeverityCount) * 100;
                     return (
                       <div
                         key={sev}
-                        style={{
-                          width: `${pct}%`,
-                          background: SEVERITY_COLORS[sev],
-                        }}
+                        style={{ width: `${(count / totalSeverityCount) * 100}%`, background: SEVERITY_COLORS[sev] }}
                       />
                     );
                   })}
                 </div>
-                {/* Legend */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
                   {SEVERITY_ORDER.map((sev) => {
                     const count = severityCounts[sev] ?? 0;
                     if (count === 0) return null;
                     return (
                       <div key={sev} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          width: '8px',
-                          height: '8px',
-                          borderRadius: '50%',
-                          background: SEVERITY_COLORS[sev],
-                          flexShrink: 0,
-                        }} />
-                        <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'capitalize' }}>
-                          {sev}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151' }}>
-                          {count}
-                        </span>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: SEVERITY_COLORS[sev], flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'capitalize' }}>{sev}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151' }}>{count}</span>
                       </div>
                     );
                   })}
@@ -522,8 +594,8 @@ export default function TryItPage() {
               </div>
             )}
 
-            {/* ── 4. Truncation notice (above table) ── */}
-            {result.truncated && (
+            {/* 3. Truncation notice */}
+            {scan.truncated && (
               <div style={{
                 background: '#fffbeb',
                 border: '1px solid #fde68a',
@@ -537,22 +609,15 @@ export default function TryItPage() {
               </div>
             )}
 
-            {/* ── 3. Findings table (grouped) ── */}
+            {/* 4. Findings table (grouped) */}
             {groupedFindings.length > 0 && (
-              <div style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                overflow: 'hidden',
-                marginBottom: '1.5rem',
-              }}>
+              <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '1.5rem' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Rule</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Category</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Severity</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Occurrences</th>
-                      <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Est. Monthly Impact</th>
+                      {['Rule', 'Category', 'Severity', 'Occurrences', 'Est. Monthly Impact'].map((h) => (
+                        <th key={h} style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -570,50 +635,22 @@ export default function TryItPage() {
                             }}
                           >
                             <td style={{ padding: '0.75rem 1rem', maxWidth: '300px' }}>
-                              <code style={{
-                                fontSize: '0.8125rem',
-                                color: '#111827',
-                                background: '#f3f4f6',
-                                padding: '0.125rem 0.375rem',
-                                borderRadius: '0.25rem',
-                              }}>
+                              <code style={{ fontSize: '0.8125rem', color: '#111827', background: '#f3f4f6', padding: '0.125rem 0.375rem', borderRadius: '0.25rem' }}>
                                 {g.rule_id}
                               </code>
                               {g.message && (
-                                <div style={{
-                                  marginTop: '0.375rem',
-                                  fontSize: '0.8125rem',
-                                  color: '#6b7280',
-                                  lineHeight: 1.45,
-                                }}>
+                                <div style={{ marginTop: '0.375rem', fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.45 }}>
                                   {g.message}
                                 </div>
                               )}
                             </td>
                             <td style={{ padding: '0.75rem 1rem' }}>
-                              <span style={{
-                                display: 'inline-block',
-                                padding: '0.125rem 0.5rem',
-                                fontSize: '0.75rem',
-                                background: '#f3f4f6',
-                                color: '#6b7280',
-                                borderRadius: '999px',
-                                whiteSpace: 'nowrap',
-                              }}>
+                              <span style={{ display: 'inline-block', padding: '0.125rem 0.5rem', fontSize: '0.75rem', background: '#f3f4f6', color: '#6b7280', borderRadius: '999px', whiteSpace: 'nowrap' }}>
                                 {g.category}
                               </span>
                             </td>
                             <td style={{ padding: '0.75rem 1rem' }}>
-                              <span style={{
-                                display: 'inline-block',
-                                padding: '0.125rem 0.5rem',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                borderRadius: '999px',
-                                color: severityColor(g.severity),
-                                background: `${severityColor(g.severity)}1a`,
-                                textTransform: 'capitalize',
-                              }}>
+                              <span style={{ display: 'inline-block', padding: '0.125rem 0.5rem', fontSize: '0.75rem', fontWeight: 600, borderRadius: '999px', color: severityColor(g.severity), background: `${severityColor(g.severity)}1a`, textTransform: 'capitalize' }}>
                                 {g.severity}
                               </span>
                             </td>
@@ -622,10 +659,7 @@ export default function TryItPage() {
                             </td>
                             <td style={{ padding: '0.75rem 1rem' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                                <span style={{
-                                  fontWeight: 700,
-                                  color: g.total_monthly_usd > 0 ? '#ea580c' : '#6b7280',
-                                }}>
+                                <span style={{ fontWeight: 700, color: g.total_monthly_usd > 0 ? '#ea580c' : '#6b7280' }}>
                                   {g.total_monthly_usd > 0
                                     ? `+$${g.total_monthly_usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo`
                                     : '—'}
@@ -640,17 +674,13 @@ export default function TryItPage() {
                           {isExpanded && (
                             <tr key={`${g.rule_id}-expanded`} style={{ borderBottom: '1px solid #f1f5f9' }}>
                               <td colSpan={5} style={{ padding: 0 }}>
-                                <div style={{
-                                  background: '#f8fafc',
-                                  padding: '0.75rem 1rem',
-                                  borderTop: '1px solid #e5e7eb',
-                                }}>
+                                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderTop: '1px solid #e5e7eb' }}>
                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
                                     <thead>
                                       <tr>
-                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>File</th>
-                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>Line</th>
-                                        <th style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>Model</th>
+                                        {['File', 'Line', 'Model'].map((h) => (
+                                          <th key={h} style={{ textAlign: 'left', padding: '0.375rem 0.5rem', color: '#9ca3af', fontWeight: 600 }}>{h}</th>
+                                        ))}
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -681,10 +711,10 @@ export default function TryItPage() {
               </div>
             )}
 
-            {/* ── 5. Footer ── */}
+            {/* 5. Footer */}
             <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem' }}>
-              {result.coverage_summary.total_rules_checked} cost patterns checked ·{' '}
-              {result.finding_count} issue(s) found
+              {scan.coverage_summary?.total_rules_checked ?? 0} cost patterns checked ·{' '}
+              {scan.finding_count} issue(s) found
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '1.25rem' }}>
@@ -692,38 +722,58 @@ export default function TryItPage() {
               estimates (the same model the CI product uses).
             </p>
 
-            <button
-              onClick={() => {
-                setStatus('idle');
-                setResult(null);
-                setError('');
-                setExpandedRules(new Set());
-              }}
+            {/* Share link */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '1.25rem',
+              padding: '0.75rem 1rem',
+              background: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '0.5rem',
+              fontSize: '0.8125rem',
+              color: '#6b7280',
+            }}>
+              <span>🔗 Shareable link:</span>
+              <code style={{ flex: 1, fontSize: '0.8125rem', color: '#374151', wordBreak: 'break-all' }}>
+                {typeof window !== 'undefined' ? window.location.href : ''}
+              </code>
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    navigator.clipboard.writeText(window.location.href).catch(() => {});
+                  }
+                }}
+                style={{ padding: '0.25rem 0.625rem', fontSize: '0.75rem', background: '#f97316', color: '#fff', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600 }}
+              >
+                Copy
+              </button>
+            </div>
+
+            <a
+              href="/tryit"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
                 padding: '0.625rem 1.5rem',
                 background: '#f97316',
                 color: '#ffffff',
                 fontWeight: 600,
                 fontSize: '0.9375rem',
-                border: 'none',
                 borderRadius: '0.5rem',
-                cursor: 'pointer',
+                textDecoration: 'none',
               }}
             >
               Scan another repo →
-            </button>
+            </a>
           </div>
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes tokna-spin {
-          to {
-            transform: rotate(360deg);
-          }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </main>
