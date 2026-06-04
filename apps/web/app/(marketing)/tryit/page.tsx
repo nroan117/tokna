@@ -484,9 +484,6 @@ export default function TryItPage() {
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
                     {groupedFindings.length} rule{groupedFindings.length !== 1 ? 's' : ''} triggered
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>
-                    out of {result.coverage_summary.total_rules_checked} patterns checked
-                  </div>
                 </div>
               </div>
             </div>
@@ -700,8 +697,7 @@ export default function TryItPage() {
 
             {/* ── 5. Footer ── */}
             <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem' }}>
-              {result.coverage_summary.total_rules_checked} cost patterns checked ·{' '}
-              {result.finding_count} issue(s) found
+              {result.finding_count} issue{result.finding_count !== 1 ? 's' : ''} found
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '1.25rem' }}>

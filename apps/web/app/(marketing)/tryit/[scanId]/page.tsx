@@ -560,9 +560,6 @@ export default function ScanResultPage() {
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
                     {groupedFindings.length} rule{groupedFindings.length !== 1 ? 's' : ''} triggered
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>
-                    out of {scan.coverage_summary?.total_rules_checked ?? 0} patterns checked
-                  </div>
                 </div>
               </div>
             </div>
@@ -717,8 +714,7 @@ export default function ScanResultPage() {
 
             {/* 5. Footer */}
             <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.75rem' }}>
-              {scan.coverage_summary?.total_rules_checked ?? 0} cost patterns checked ·{' '}
-              {scan.finding_count} issue(s) found
+              {scan.finding_count} issue{scan.finding_count !== 1 ? 's' : ''} found
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.5, marginBottom: '1.25rem' }}>
