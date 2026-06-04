@@ -137,13 +137,17 @@ function groupFindings(findings: Finding[]): GroupedFinding[] {
 
 function calcScore(grouped: GroupedFinding[], totalRulesChecked: number): number {
   if (grouped.length === 0) return 100;
-  const maxPenalty = totalRulesChecked * 3;
-  if (maxPenalty === 0) return 100;
-  const actualPenalty = grouped.reduce(
-    (sum, g) => sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5),
-    0,
-  );
-  return Math.round(Math.max(0, 100 - (actualPenalty / maxPenalty) * 100));
+  
+  // Use a logarithmic-style penalty based on the variety and severity of issues found.
+  // This produces a much wider range of scores than dividing by the total rule count.
+  const weightedDiversity = grouped.reduce((sum, g) => {
+    return sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5);
+  }, 0);
+
+  // Formula: Score = 100 * (0.88 ^ WeightedDiversity)
+  const score = Math.round(100 * Math.pow(0.88, weightedDiversity));
+  
+  return Math.max(1, score);
 }
 
 function truncatePath(filePath: string): string {

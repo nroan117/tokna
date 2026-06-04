@@ -118,12 +118,22 @@ function groupFindings(findings: Finding[]): GroupedFinding[] {
 
 function calcScore(grouped: GroupedFinding[], totalRulesChecked: number): number {
   if (grouped.length === 0) return 100;
-  const maxPenalty = totalRulesChecked * 3;
-  if (maxPenalty === 0) return 100;
-  const actualPenalty = grouped.reduce((sum, g) => {
+  
+  // Use a logarithmic-style penalty based on the variety and severity of issues found.
+  // This produces a much wider range of scores than dividing by the total rule count.
+  const weightedDiversity = grouped.reduce((sum, g) => {
     return sum + (SEVERITY_WEIGHT[g.severity.toLowerCase()] ?? 0.5);
   }, 0);
-  return Math.round(Math.max(0, 100 - (actualPenalty / maxPenalty) * 100));
+
+  // Formula: Score = 100 * (0.88 ^ WeightedDiversity)
+  // - 1 Medium rule triggered (~1.0 weight) -> ~88%
+  // - 1 High rule triggered (~2.0 weight) -> ~77%
+  // - 1 Critical rule triggered (~3.0 weight) -> ~68%
+  // - 10 Medium rules -> ~28%
+  // - 30+ rules (demo repos) -> < 5%
+  const score = Math.round(100 * Math.pow(0.88, weightedDiversity));
+  
+  return Math.max(1, score);
 }
 
 function scoreColor(score: number): string {
