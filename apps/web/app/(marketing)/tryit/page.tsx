@@ -166,11 +166,18 @@ export default function TryItPage() {
     setError('');
     setResult(null);
     setExpandedRules(new Set());
+
+    // Normalize URL: auto-prepend https:// if missing
+    let normalizedUrl = repoUrl.trim();
+    if (normalizedUrl && !normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+      normalizedUrl = `https://${normalizedUrl}`;
+    }
+
     try {
       const r = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo_url: repoUrl, daily_call_volume: dailyCalls }),
+        body: JSON.stringify({ repo_url: normalizedUrl, daily_call_volume: dailyCalls }),
       });
       const data = await r.json();
       if (!r.ok || data.error) {
