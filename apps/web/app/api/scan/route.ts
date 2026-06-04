@@ -1,4 +1,4 @@
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {
@@ -8,10 +8,16 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    });
+      // In Next.js 15+ fetch defaults to no timeout, but Cloud Run / Vercel
+      // will respect the maxDuration config above for the overall function.
+      signal: AbortSignal.timeout(280000), 
+    } as any);
     const data = await r.json();
     return Response.json(data, { status: r.status });
-  } catch (e) {
+  } catch (e: any) {
+    if (e.name === 'TimeoutError') {
+      return Response.json({ error: 'Scan timed out' }, { status: 504 });
+    }
     return Response.json({ error: 'Backend unreachable' }, { status: 502 });
   }
 }
