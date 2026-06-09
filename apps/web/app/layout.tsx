@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
-  title: 'Tokna — Automated AI Cost Savings',
+  title: 'Tokna - Automated AI Cost Savings',
   description: 'Automatically reduce AI cost waste so you can focus on building. Prevent regressions before they ship with CI/CD native guardrails.',
   icons: {
     icon: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Tokna — Automated AI Cost Savings',
+    title: 'Tokna - Automated AI Cost Savings',
     description: 'Automatically reduce AI cost waste so you can focus on building.',
     url: 'https://tokna.ai',
     siteName: 'Tokna',
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
         url: 'https://tokna.ai/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Tokna — Automated AI Cost Savings',
+        alt: 'Tokna - Automated AI Cost Savings',
       },
     ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tokna — Automated AI Cost Savings',
+    title: 'Tokna - Automated AI Cost Savings',
     description: 'Automatically reduce AI cost waste so you can focus on building.',
     images: ['https://tokna.ai/og-image.png'],
   },
