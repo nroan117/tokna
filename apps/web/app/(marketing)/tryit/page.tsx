@@ -43,6 +43,50 @@ interface GroupedFinding {
   instances: Finding[];
 }
 
+interface ExampleRepo {
+  id: string;
+  name: string;
+  repo_url: string;
+  daily_calls: number;
+  description: string;
+  icon: string;
+  findings_badge: string;
+  slug: string;
+}
+
+const EXAMPLE_REPOS: ExampleRepo[] = [
+  {
+    id: 'autogpt',
+    slug: 'autogpt',
+    name: 'AutoGPT',
+    repo_url: 'https://github.com/Significant-Gravitas/AutoGPT',
+    daily_calls: 500,
+    description: 'Autonomous agent loops and tool-use at scale.',
+    icon: '🤖',
+    findings_badge: 'High Impact',
+  },
+  {
+    id: 'vercel',
+    slug: 'vercel',
+    name: 'Vercel AI Chatbot',
+    repo_url: 'https://github.com/vercel/ai-chatbot',
+    daily_calls: 1000,
+    description: 'Modern Next.js streaming and model optimizations.',
+    icon: '▲',
+    findings_badge: 'Production Clean',
+  },
+  {
+    id: 'openai',
+    slug: 'openai',
+    name: 'OpenAI Cookbook',
+    repo_url: 'https://github.com/openai/openai-cookbook',
+    daily_calls: 250,
+    description: 'Reference implementations and token efficiency.',
+    icon: '❄️',
+    findings_badge: 'Best Practices',
+  },
+];
+
 type Status = 'idle' | 'loading' | 'error' | 'results';
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -170,6 +214,44 @@ export default function TryItPage() {
     });
   }
 
+  async function handleExampleSelect(example: ExampleRepo) {
+    setRepoUrl(example.repo_url);
+    setDailyCalls(example.daily_calls);
+    setStatus('loading');
+    setError('');
+    setResult(null);
+    setExpandedRules(new Set());
+
+    try {
+      // Proactive fetch for cached results
+      const r = await fetch(`/api/examples/${example.slug}`);
+      const data = await r.json();
+      
+      if (r.ok && data.status === 'complete') {
+        setResult(data as ScanResult);
+        setStatus('results');
+        return;
+      }
+      
+      // Fallback to normal scan if cache is missing or incomplete
+      const scanRes = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo_url: example.repo_url, daily_call_volume: example.daily_calls }),
+      });
+      const scanData = await scanRes.json();
+      if (scanRes.status === 202 && scanData.scan_id) {
+        router.push(`/tryit/${scanData.scan_id}`);
+        return;
+      }
+      setError('Example scan failed to start.');
+      setStatus('error');
+    } catch (err) {
+      setError('Could not load example.');
+      setStatus('error');
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus('loading');
@@ -267,6 +349,62 @@ export default function TryItPage() {
           Paste any public GitHub repo and we&apos;ll run a scan and a cost estimate
           against your code. No setup, no signup.
         </p>
+
+        {/* Example Selection */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '1rem',
+          marginBottom: '2.5rem'
+        }}>
+          {EXAMPLE_REPOS.map((ex) => (
+            <button
+              key={ex.id}
+              onClick={() => handleExampleSelect(ex)}
+              disabled={status === 'loading'}
+              style={{
+                textAlign: 'left',
+                padding: '1.25rem',
+                background: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.75rem',
+                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                if (status !== 'loading') {
+                  e.currentTarget.style.borderColor = '#f97316';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#e5e7eb';
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>{ex.icon}</span>
+                <span style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.025em',
+                  color: '#ea580c',
+                  background: '#fff7ed',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.375rem',
+                }}>
+                  {ex.findings_badge}
+                </span>
+              </div>
+              <div style={{ fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>{ex.name}</div>
+              <div style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: 1.4 }}>{ex.description}</div>
+            </button>
+          ))}
+        </div>
 
         <form onSubmit={handleSubmit} style={{ marginBottom: '2.5rem' }}>
           <input
