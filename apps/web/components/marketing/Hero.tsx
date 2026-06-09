@@ -32,6 +32,7 @@ export default function Hero() {
       }}>
         {/* Left: Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/*
           <p style={{
             fontSize: '0.75rem',
             fontWeight: 700,
@@ -42,6 +43,7 @@ export default function Hero() {
           }}>
             Automated AI Cost Savings
           </p>
+          */}
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
             fontWeight: 800,
