@@ -78,10 +78,10 @@ const EXAMPLE_REPOS: ExampleRepo[] = [
   {
     id: 'openai',
     slug: 'openai',
-    name: 'OpenAI Cookbook',
-    repo_url: 'https://github.com/openai/openai-cookbook',
+    name: 'OpenAI Python SDK',
+    repo_url: 'https://github.com/openai/openai-python',
     daily_calls: 250,
-    description: 'Reference implementations and token efficiency.',
+    description: 'Official SDK implementation and token management.',
     icon: '❄️',
     findings_badge: 'Best Practices',
   },
