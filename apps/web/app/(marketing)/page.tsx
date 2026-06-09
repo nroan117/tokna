@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <main>
       <Hero />
-      <TrustBar />
+      {/* <TrustBar /> */}
       <Approach />
       <ProductTabs />
       <Stats />
