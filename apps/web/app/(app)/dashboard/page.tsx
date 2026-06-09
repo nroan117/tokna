@@ -25,16 +25,28 @@ function healthColor(status: string) {
   return status === 'good' ? '#16a34a' : status === 'warn' ? '#f97316' : '#dc2626';
 }
 
-function severityLabel(sev: string) {
-  return sev === 'crit' ? '🔴 Critical' : sev === 'warn' ? '🟠 Warning' : '🔵 Info';
-}
+function SeverityBadge({ sev }: { sev: string }) {
+  const label = sev === 'crit' ? 'Critical' : sev === 'warn' ? 'Warning' : 'Info';
+  const fg = sev === 'crit' ? '#dc2626' : sev === 'warn' ? '#ea580c' : '#2563eb';
+  const bg = sev === 'crit' ? 'rgba(220,38,38,0.1)' : sev === 'warn' ? 'rgba(249,115,22,0.1)' : 'rgba(59,130,246,0.1)';
+  const dot = sev === 'crit' ? '#ef4444' : sev === 'warn' ? '#f97316' : '#3b82f6';
 
-function severityBg(sev: string) {
-  return sev === 'crit' ? 'rgba(220,38,38,0.1)' : sev === 'warn' ? 'rgba(249,115,22,0.1)' : 'rgba(59,130,246,0.1)';
-}
-
-function severityFg(sev: string) {
-  return sev === 'crit' ? '#dc2626' : sev === 'warn' ? '#ea580c' : '#2563eb';
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.375rem',
+      padding: '0.25rem 0.625rem',
+      borderRadius: '0.25rem',
+      fontSize: '0.75rem',
+      fontWeight: 600,
+      background: bg,
+      color: fg,
+    }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dot }} />
+      {label}
+    </span>
+  );
 }
 
 export default function DashboardOverview() {
@@ -123,13 +135,7 @@ export default function DashboardOverview() {
                 {REGRESSIONS.map((r, i) => (
                   <tr key={i} style={{ borderBottom: i < REGRESSIONS.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
-                      <span style={{
-                        padding: '0.25rem 0.625rem', borderRadius: '0.25rem',
-                        fontSize: '0.75rem', fontWeight: 600,
-                        background: severityBg(r.severity), color: severityFg(r.severity),
-                      }}>
-                        {severityLabel(r.severity)}
-                      </span>
+                      <SeverityBadge sev={r.severity} />
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: 600 }}>
                       {r.dashboard}

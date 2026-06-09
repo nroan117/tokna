@@ -21,7 +21,10 @@ const ScanResultsMockup: ReactNode = (
     {/* HIGH */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔴 HIGH</span>
+        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626' }} />
+          HIGH
+        </span>
         <code style={{ fontSize: '0.8125rem', color: '#374151' }}>chat/completion.ts:42</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>missing-max-tokens</div>
@@ -31,7 +34,10 @@ const ScanResultsMockup: ReactNode = (
     {/* MED */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🟠 MED</span>
+        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ea580c' }} />
+          MED
+        </span>
         <code style={{ fontSize: '0.8125rem', color: '#374151' }}>utils/retry.ts:87</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>unbounded-retry</div>
@@ -41,7 +47,10 @@ const ScanResultsMockup: ReactNode = (
     {/* LOW */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px' }}>🔵 LOW</span>
+        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb' }} />
+          LOW
+        </span>
         <code style={{ fontSize: '0.8125rem', color: '#374151' }}>classify/model.ts:14</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>overpriced-model</div>
@@ -147,7 +156,7 @@ const CostReportsMockup: ReactNode = (
         <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Platform Engineering</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
           <span style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>94/100</span>
-          <span>✅</span>
+          <span style={{ fontSize: '0.75rem' }}>✅</span>
         </div>
       </div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>2 open · $4,320/mo savings unlocked</div>
@@ -161,7 +170,7 @@ const CostReportsMockup: ReactNode = (
         <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>ML Infrastructure</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
           <span style={{ background: '#fffbeb', color: '#d97706', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>71/100</span>
-          <span>⚠️</span>
+          <span style={{ fontSize: '0.75rem' }}>⚠️</span>
         </div>
       </div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>9 open · $12,300/mo at risk</div>
@@ -175,7 +184,7 @@ const CostReportsMockup: ReactNode = (
         <span style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Data Engineering</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
           <span style={{ background: '#f0fdf4', color: '#16a34a', fontWeight: 700, fontSize: '0.8125rem', padding: '0.125rem 0.625rem', borderRadius: '999px' }}>83/100</span>
-          <span>✅</span>
+          <span style={{ fontSize: '0.75rem' }}>✅</span>
         </div>
       </div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.5rem' }}>4 open · $2,100/mo savings unlocked</div>
