@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
-  title: 'Tokna — Automate AI Cost Engineering',
+  title: 'Tokna — Automated AI Cost Savings',
   description: 'Automatically reduce AI cost waste so you can focus on building. Prevent regressions before they ship with CI/CD native guardrails.',
   icons: {
     icon: [
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Tokna — Automate AI Cost Engineering',
+    title: 'Tokna — Automated AI Cost Savings',
     description: 'Automatically reduce AI cost waste so you can focus on building.',
     url: 'https://tokna.ai',
     siteName: 'Tokna',
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
         url: 'https://tokna.ai/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Tokna — Automate AI Cost Engineering',
+        alt: 'Tokna — Automated AI Cost Savings',
       },
     ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tokna — Automate AI Cost Engineering',
+    title: 'Tokna — Automated AI Cost Savings',
     description: 'Automatically reduce AI cost waste so you can focus on building.',
     images: ['https://tokna.ai/og-image.png'],
   },
@@ -56,7 +56,7 @@ const schemaOrg = {
         '@type': 'ImageObject',
         url: 'https://tokna.ai/favicon-192.png',
       },
-      description: 'Tokna automates AI cost engineering — preventing LLM cost regressions before they ship with CI/CD native guardrails and 220+ cost rules.',
+      description: 'Tokna provides automated AI cost savings — preventing AI cost regressions before they ship with CI/CD native guardrails and 220+ cost rules.',
       foundingDate: '2026',
       sameAs: [
         'https://github.com/nroan117/tokna',

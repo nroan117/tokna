@@ -40,7 +40,7 @@ export default function Hero() {
             color: '#f97316',
             margin: 0,
           }}>
-            AI Cost Engineering, Automated
+            Automated AI Cost Savings
           </p>
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
@@ -49,7 +49,7 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Automate AI cost engineering
+            Automated AI cost savings
             <br />
             <span style={{ color: '#f97316' }}>so you can focus on building</span>
           </h1>
@@ -115,7 +115,7 @@ export default function Hero() {
           }}>
             <Image
               src="/dashboard-preview.png"
-              alt="Tokna Dashboard — AI cost engineering automation across 8 verticals"
+              alt="Tokna Dashboard — Automated AI cost savings across 8 verticals"
               width={1200}
               height={1000}
               style={{ width: '100%', height: 'auto', display: 'block' }}
