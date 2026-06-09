@@ -346,7 +346,7 @@ export default function TryItPage() {
           lineHeight: 1.6,
           marginBottom: '2.5rem',
         }}>
-          Paste any public GitHub repo and we&apos;ll run a scan and a cost estimate
+          Select an example or provide a public Git repo to optimize! We&apos;ll run a scan and a cost estimate
           against your code. No setup, no signup.
         </p>
 
