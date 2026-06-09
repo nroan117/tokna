@@ -261,7 +261,7 @@ const TABS = [
     id: 'cost-scanning',
     label: 'Cost Scanning',
     eyebrow: 'Automated cost regression scanning for AI workloads',
-    description: 'Automated scanning that finds cost regressions in your LLM code',
+    description: 'Automated scanning that finds cost regressions in your AI code',
     bullets: [
       'Missing token limits',
       'Unbounded retry loops',

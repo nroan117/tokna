@@ -15,7 +15,7 @@ const STEPS = [
     number: 2,
     name: 'Scan',
     subheadline: 'Detect Everything',
-    body: 'Scan your LLM code for 220+ cost regression patterns.',
+    body: 'Scan your AI code for 220+ cost regression patterns.',
     bullets: [
       'Static analysis of prompts and configs',
       'Token limit violations',

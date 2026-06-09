@@ -7,7 +7,7 @@ const tabs = [
     label: 'For FinOps Directors',
     subtitle: 'Visibility & Control',
     description:
-      'You need automated cost engineering for LLM workloads before they blow your budget. Tokna gives you shift-left cost automation without requiring manual intervention.',
+      'You need automated cost engineering for AI workloads before they blow your budget. Tokna gives you shift-left cost automation without requiring manual intervention.',
     bullets: [
       'Prevent regressions before production — not after the bill arrives',
       'Application-level cost attribution (not just cloud billing)',
@@ -25,7 +25,7 @@ const tabs = [
       'Drop-in GitHub Action — 5-minute setup',
       '220+ rules, zero config required',
       'PR comments with cost impact estimates',
-      'Works with any LLM provider',
+      'Works with any AI provider',
     ],
   },
   {
@@ -64,7 +64,7 @@ export default function PersonaTabs() {
             AI cost engineering that works for everyone
           </h2>
           <p style={{ fontSize: '1.0625rem', color: '#6b7280', margin: 0 }}>
-            Whether you&apos;re managing cloud budgets or writing LLM code, Tokna meets you
+            Whether you&apos;re managing cloud budgets or writing AI code, Tokna meets you
             where you are.
           </p>
         </div>
