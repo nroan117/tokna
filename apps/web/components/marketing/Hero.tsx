@@ -67,41 +67,29 @@ export default function Hero() {
           }}>
             Automated optimization for every token, agent loop, and model call.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
             <Link href="/contact" style={{
               display: 'inline-flex',
               alignItems: 'center',
-              padding: '0.75rem 1.75rem',
+              padding: '0.875rem 2rem',
               background: '#f97316',
               color: '#ffffff',
               fontWeight: 600,
-              fontSize: '0.9375rem',
-              borderRadius: '0.375rem',
+              fontSize: '1rem',
+              borderRadius: '0.5rem',
               textDecoration: 'none',
+              transition: 'transform 0.1s ease',
             }}>
               Book a Demo
             </Link>
-            {/*
-            <Link href="/docs/intro" style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '0.75rem 1.75rem',
-              background: 'transparent',
-              color: '#374151',
-              fontWeight: 600,
-              fontSize: '0.9375rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #e5e7eb',
-              textDecoration: 'none',
-            }}>
-              Try Free
-            </Link>
-            */}
           </div>
           <p style={{
-            fontSize: '0.8125rem',
+            fontSize: '0.875rem',
             color: '#9ca3af',
-            margin: 0,
+            marginTop: '1.5rem',
+            marginRight: 0,
+            marginBottom: 0,
+            marginLeft: 0,
             letterSpacing: '0.02em',
           }}>
             220+ cost rules · Used in CI/CD pipelines
