@@ -40,11 +40,8 @@ export default function MetricsBar() {
           position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
           background: 'linear-gradient(90deg, #c2410c, #f97316, #fb923c)',
         }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.125rem' }}>
-          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#c2410c' }} />
-          <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c2410c' }}>
-            Estimated Waste
-          </div>
+        <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#c2410c' }}>
+          ⚠ Estimated Waste
         </div>
         <div style={{ fontSize: '1.875rem', fontWeight: 700, color: '#ea580c', lineHeight: 1.1 }}>
           $28,400
@@ -54,11 +51,11 @@ export default function MetricsBar() {
           padding: '0.1875rem 0.5rem',
           background: 'rgba(249,115,22,0.12)',
           borderRadius: '0.25rem',
-          fontSize: '0.6875rem', fontWeight: 800, color: '#c2410c',
+          fontSize: '0.6875rem', fontWeight: 700, color: '#c2410c',
           textTransform: 'uppercase', letterSpacing: '0.06em',
           width: 'fit-content',
         }}>
-          19.9% of total spend · ACTION REQUIRED
+          ▲ 19.9% of total spend · ACTION REQUIRED
         </div>
       </div>
 
