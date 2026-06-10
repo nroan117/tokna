@@ -62,7 +62,7 @@ export default function Hero() {
             margin: '0.5rem 0 0',
             maxWidth: '520px',
           }}>
-            Prevent AI cost regressions before they ship — every token, every agent loop, every model call, automatically.
+            Optimize your AI deployment — every token, every agent loop, every model call, automatically.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <Link href="/contact" style={{
