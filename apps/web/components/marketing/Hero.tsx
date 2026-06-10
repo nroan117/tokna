@@ -51,9 +51,9 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Automated AI cost savings
+            Maximized performance. Reduced spend.
             <br />
-            <span style={{ color: '#f97316' }}>so you can focus on building</span>
+            <span style={{ color: '#f97316' }}>You focus on building.</span>
           </h1>
           <p style={{
             fontSize: '1.125rem',
