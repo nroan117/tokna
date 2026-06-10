@@ -47,22 +47,25 @@ export default function Hero() {
           <h1 style={{
             fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
             fontWeight: 800,
-            lineHeight: 1.1,
+            lineHeight: 1.2,
             color: '#111827',
             margin: 0,
           }}>
-            Maximized performance. Reduced spend.
+            Maximized performance.
+            <br />
+            Reduced spend.
             <br />
             <span style={{ color: '#f97316' }}>You focus on building.</span>
           </h1>
           <p style={{
-            fontSize: '1.125rem',
-            lineHeight: 1.7,
-            color: '#6b7280',
-            margin: '0.5rem 0 0',
-            maxWidth: '520px',
+            fontSize: '1.25rem',
+            lineHeight: 1.6,
+            color: '#4b5563',
+            margin: '1.5rem 0 0',
+            maxWidth: '600px',
+            fontWeight: 450,
           }}>
-            Optimize your AI deployment — every token, every agent loop, every model call, automatically.
+            Automated optimization for every token, agent loop, and model call.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <Link href="/contact" style={{
