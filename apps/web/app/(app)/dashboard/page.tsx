@@ -16,7 +16,7 @@ const VERTICALS = [
 const REGRESSIONS = [
   { severity: 'crit', dashboard: 'Inference Infra',    finding: 'VRAM under-provisioned on 12 A100 pods — avg 34% idle waste',         impact: '$8,200', detected: '2h ago' },
   { severity: 'crit', dashboard: 'Model Selection',    finding: 'GPT-4o used for simple classification — 80% cheaper alt available',   impact: '$6,400', detected: '1d ago' },
-  { severity: 'warn', dashboard: 'Token Efficiency',   finding: 'System prompts exceed 2 k tokens on 60% of requests',                  impact: '$3,100', detected: '3h ago' },
+  { severity: 'warn', dashboard: 'Token Efficiency',   finding: 'System prompts exceed 2k tokens on 60% of requests',                  impact: '$3,100', detected: '3h ago' },
   { severity: 'warn', dashboard: 'Agentic Workflows',  finding: 'Agent loops averaging 14 steps — target ≤ 8',                          impact: '$2,800', detected: '5h ago' },
   { severity: 'info', dashboard: 'Retrieval (RAG)',    finding: 'Chunk overlap at 40% — reduce to 20% for 15% throughput gain',         impact: '$1,200', detected: '6h ago' },
 ] as const;
@@ -28,20 +28,22 @@ function healthColor(status: string) {
 function SeverityBadge({ sev }: { sev: string }) {
   const label = sev === 'crit' ? 'Critical' : sev === 'warn' ? 'Warning' : 'Info';
   const fg = sev === 'crit' ? '#dc2626' : sev === 'warn' ? '#ea580c' : '#2563eb';
-  const bg = sev === 'crit' ? 'rgba(220,38,38,0.1)' : sev === 'warn' ? 'rgba(249,115,22,0.1)' : 'rgba(59,130,246,0.1)';
+  const bg = sev === 'crit' ? '#fee2e2' : sev === 'warn' ? '#ffedd5' : '#dbeafe';
   const dot = sev === 'crit' ? '#ef4444' : sev === 'warn' ? '#f97316' : '#3b82f6';
 
   return (
     <span style={{
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '0.375rem',
-      padding: '0.25rem 0.625rem',
-      borderRadius: '0.25rem',
+      gap: '0.5rem',
+      padding: '0.3125rem 0.75rem',
+      borderRadius: '999px',
       fontSize: '0.75rem',
-      fontWeight: 600,
+      fontWeight: 700,
       background: bg,
       color: fg,
+      textTransform: 'uppercase',
+      letterSpacing: '0.02em',
     }}>
       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dot }} />
       {label}
@@ -134,19 +136,19 @@ export default function DashboardOverview() {
               <tbody>
                 {REGRESSIONS.map((r, i) => (
                   <tr key={i} style={{ borderBottom: i < REGRESSIONS.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                    <td style={{ padding: '0.875rem 1.25rem' }}>
+                    <td style={{ padding: '1rem 1.25rem', verticalAlign: 'middle' }}>
                       <SeverityBadge sev={r.severity} />
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#94a3b8', fontWeight: 600 }}>
+                    <td style={{ padding: '1rem 1.25rem', fontSize: '0.875rem', color: '#64748b', fontWeight: 600, verticalAlign: 'middle' }}>
                       {r.dashboard}
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#374151' }}>
+                    <td style={{ padding: '1rem 1.25rem', fontSize: '0.875rem', color: '#334155', verticalAlign: 'middle', lineHeight: 1.5 }}>
                       {r.finding}
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem' }}>
+                    <td style={{ padding: '1rem 1.25rem', verticalAlign: 'middle' }}>
                       <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#dc2626' }}>{r.impact}</span>
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', fontSize: '0.875rem', color: '#475569' }}>
+                    <td style={{ padding: '1rem 1.25rem', fontSize: '0.8125rem', color: '#94a3b8', verticalAlign: 'middle' }}>
                       {r.detected}
                     </td>
                   </tr>

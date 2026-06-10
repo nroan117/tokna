@@ -20,12 +20,12 @@ const ScanResultsMockup: ReactNode = (
     </div>
     {/* HIGH */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 800, padding: '0.25rem 0.625rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', textTransform: 'uppercase' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
           HIGH
         </span>
-        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>chat/completion.ts:42</code>
+        <code style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 500 }}>chat/completion.ts:42</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>missing-max-tokens</div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>Uncapped completions — est. +$1,240/mo</div>
@@ -33,12 +33,12 @@ const ScanResultsMockup: ReactNode = (
     </div>
     {/* MED */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ea580c' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#ffedd5', color: '#ea580c', fontSize: '0.6875rem', fontWeight: 800, padding: '0.25rem 0.625rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', textTransform: 'uppercase' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f97316' }} />
           MED
         </span>
-        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>utils/retry.ts:87</code>
+        <code style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 500 }}>utils/retry.ts:87</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>unbounded-retry</div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>No retry cap — est. +$340/mo</div>
@@ -46,12 +46,12 @@ const ScanResultsMockup: ReactNode = (
     </div>
     {/* LOW */}
     <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.375rem' }}>
+        <span style={{ background: '#dbeafe', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 800, padding: '0.25rem 0.625rem', borderRadius: '999px', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', textTransform: 'uppercase' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }} />
           LOW
         </span>
-        <code style={{ fontSize: '0.8125rem', color: '#374151' }}>classify/model.ts:14</code>
+        <code style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 500 }}>classify/model.ts:14</code>
       </div>
       <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#111827' }}>overpriced-model</div>
       <div style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.125rem' }}>GPT-4 for classification — +$180/mo</div>
