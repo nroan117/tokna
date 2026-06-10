@@ -1,0 +1,15 @@
+{
+  "id": "tokna@tokna",
+  "name": "Tokna AI Performance Engineer",
+  "description": "Active performance and cost engineering for AI development loops.",
+  "version": "0.1.0",
+  "author": "Nick R",
+  "capabilities": {
+    "hooks": true,
+    "agents": true,
+    "skills": true
+  },
+  "entryPoints": {
+    "hooks": "hooks/hooks.json"
+  }
+}

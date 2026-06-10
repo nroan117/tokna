@@ -1,0 +1,12 @@
+{
+  "name": "Tokna Marketplace",
+  "plugins": [
+    {
+      "id": "tokna@tokna",
+      "source": {
+        "type": "local",
+        "path": "./"
+      }
+    }
+  ]
+}
