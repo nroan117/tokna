@@ -65,7 +65,7 @@ export default function Hero() {
             maxWidth: '600px',
             fontWeight: 450,
           }}>
-            Automated optimization for every token, agent loop, and model call.
+            Every token, agent loop, and model call optimized.
           </p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
             <Link href="/contact" style={{
