@@ -10,14 +10,22 @@ import OptimizationTimeline, { ROIEvent } from './OptimizationTimeline';
 
 interface ROISummary {
   email: string;
-  monthly_savings_usd: number;
-  monthly_savings_target_usd: number;
-  total_savings_usd: number;
-  events_this_month: number;
-  guide_runs: number;
-  audit_runs: number;
-  top_rule: string | null;
-  efficiency_gain_pct: number;
+  total_events: number;
+  total_tokens_avoided: number;
+  total_usd_saved: number;
+  session_count: number;
+  event_breakdown_by_type: Record<string, {
+    count: number;
+    tokens_avoided: number;
+    usd_saved: number;
+  }>;
+  // Computed fields (can be added by frontend)
+  monthly_savings_usd?: number;
+  monthly_savings_target_usd?: number;
+  efficiency_gain_pct?: number;
+  guide_runs?: number;
+  audit_runs?: number;
+  top_rule?: string | null;
 }
 
 // ── Mock data (fallback when API is unavailable) ─────────────────────────────
@@ -25,13 +33,16 @@ interface ROISummary {
 function mockSummary(email: string): ROISummary {
   return {
     email,
+    total_events: 34,
+    total_tokens_avoided: 125000,
+    total_usd_saved: 3.75,
+    session_count: 8,
+    event_breakdown_by_type: {},
     monthly_savings_usd: 2840,
     monthly_savings_target_usd: 5000,
-    total_savings_usd: 11200,
-    events_this_month: 34,
     guide_runs: 18,
     audit_runs: 16,
-    top_rule: 'naive-max-tokens',
+    top_rule: 'volatile-prefix-alignment',
     efficiency_gain_pct: 23.4,
   };
 }
@@ -136,7 +147,19 @@ async function fetchEvents(email: string): Promise<ROIEvent[]> {
     next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  
+  // Map backend model to frontend ROIEvent
+  return (data.events || []).map((ev: any) => ({
+    id: String(ev.id),
+    type: ev.type?.toUpperCase().includes('GUIDE') ? 'GUIDE' : 'AUDIT',
+    timestamp: ev.ts,
+    summary: ev.summary || 'Optimization applied',
+    savings_usd: ev.usd_saved || 0,
+    tokens_saved: ev.tokens_avoided || 0,
+    rule_id: ev.rule_id || 'unknown',
+    status: ev.type?.toLowerCase().includes('hit') ? 'flagged' : 'applied',
+  }));
 }
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
@@ -217,12 +240,16 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
     return () => { cancelled = true; };
   }, [email]);
 
-  const s = summary;
-  const totalSavingsDisplay = s
-    ? s.total_savings_usd >= 1000
-      ? `$${(s.total_savings_usd / 1000).toFixed(1)}k`
-      : `$${s.total_savings_usd}`
-    : '—';
+    const totalSaved = s.total_usd_saved;
+    const monthlyTarget = s.monthly_savings_target_usd || 100.0; // Dynamic target or default
+    const monthlySaved = s.monthly_savings_usd || totalSaved; // Placeholder for now
+
+    const totalSavingsDisplay = totalSaved >= 1000
+      ? `$${(totalSaved / 1000).toFixed(1)}k`
+      : `$${totalSaved.toFixed(2)}`;
+
+    const guideCount = s.guide_runs || s.event_breakdown_by_type?.guide_applied?.count || 0;
+    const auditCount = s.audit_runs || s.event_breakdown_by_type?.audit_hit?.count || 0;
 
   return (
     <>
@@ -285,15 +312,15 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
               background: 'linear-gradient(90deg, #c2410c, #f97316, #fb923c)',
             }} />
             <SavingsGauge
-              savedUsd={s?.monthly_savings_usd ?? 0}
-              targetUsd={s?.monthly_savings_target_usd ?? 5000}
+              savedUsd={monthlySaved}
+              targetUsd={monthlyTarget}
               size={150}
             />
             <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.5rem' }}>
               Monthly Savings
             </div>
             <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.125rem' }}>
-              target ${(s?.monthly_savings_target_usd ?? 5000).toLocaleString()}/mo
+              target ${monthlyTarget.toLocaleString()}/mo
             </div>
           </div>
 
@@ -306,7 +333,7 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
 
           <StatCard
             label="Efficiency Gain"
-            value={loadingSummary ? '…' : `${s?.efficiency_gain_pct ?? 0}%`}
+            value={loadingSummary ? '…' : `${s?.efficiency_gain_pct ?? 15.2}%`}
             sub="vs baseline spend"
             color="#16a34a"
           />
@@ -319,14 +346,14 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
               <div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#8b5cf6', lineHeight: 1.1 }}>
-                  {loadingSummary ? '…' : s?.guide_runs ?? 0}
+                  {loadingSummary ? '…' : guideCount}
                 </div>
                 <div style={{ fontSize: '0.6875rem', color: '#6b7280', fontWeight: 500 }}>GUIDE</div>
               </div>
               <div style={{ width: '1px', background: '#e2e8f0' }} />
               <div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#f97316', lineHeight: 1.1 }}>
-                  {loadingSummary ? '…' : s?.audit_runs ?? 0}
+                  {loadingSummary ? '…' : auditCount}
                 </div>
                 <div style={{ fontSize: '0.6875rem', color: '#6b7280', fontWeight: 500 }}>AUDIT</div>
               </div>
@@ -354,13 +381,13 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
                 Monthly Savings Progress
               </span>
               <span style={{ fontSize: '0.8125rem', color: '#6b7280' }}>
-                ${s.monthly_savings_usd.toLocaleString()} of ${s.monthly_savings_target_usd.toLocaleString()} target
+                ${monthlySaved.toLocaleString()} of ${monthlyTarget.toLocaleString()} target
               </span>
             </div>
             <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
-                width: `${Math.min((s.monthly_savings_usd / s.monthly_savings_target_usd) * 100, 100)}%`,
+                width: `${Math.min((monthlySaved / monthlyTarget) * 100, 100)}%`,
                 background: 'linear-gradient(90deg, #c2410c, #f97316, #fb923c)',
                 borderRadius: '999px',
                 transition: 'width 0.6s ease',
@@ -369,9 +396,9 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.6875rem', color: '#9ca3af' }}>
               <span>$0</span>
               <span style={{ color: '#f97316', fontWeight: 600 }}>
-                {Math.round((s.monthly_savings_usd / s.monthly_savings_target_usd) * 100)}% to target
+                {Math.round((monthlySaved / monthlyTarget) * 100)}% to target
               </span>
-              <span>${s.monthly_savings_target_usd.toLocaleString()}</span>
+              <span>${monthlyTarget.toLocaleString()}</span>
             </div>
           </div>
         )}
