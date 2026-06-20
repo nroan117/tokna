@@ -51,11 +51,9 @@ export default function Hero() {
             color: '#111827',
             margin: 0,
           }}>
-            Maximized performance.
+            Focus on building,
             <br />
-            Reduced spend.
-            <br />
-            <span style={{ color: '#f97316' }}>You focus on building.</span>
+            <span style={{ color: '#f97316' }}>not spend & tuning.</span>
           </h1>
           <p style={{
             fontSize: '1.25rem',

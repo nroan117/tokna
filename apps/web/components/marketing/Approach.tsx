@@ -59,7 +59,7 @@ export default function Approach() {
             margin: '0 0 1rem',
             lineHeight: 1.2,
           }}>
-            Maximized performance. Reduced spend.<br />Built into your development workflow.
+            Focus on building, not spend & tuning.<br />Built into your development workflow.
           </h2>
           <p style={{ fontSize: '1.125rem', color: '#6b7280', margin: 0 }}>
             From first commit to production, Tokna meets you wherever you&apos;re building.

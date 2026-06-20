@@ -61,7 +61,7 @@ export default function PersonaTabs() {
             fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 800, color: '#111827',
             margin: '0 0 1rem', lineHeight: 1.2,
           }}>
-            Maximized performance and reduced spend for everyone
+            Focus on building for everyone
           </h2>
           <p style={{ fontSize: '1.0625rem', color: '#6b7280', margin: 0 }}>
             Whether you&apos;re managing cloud budgets or writing AI code, Tokna meets you
