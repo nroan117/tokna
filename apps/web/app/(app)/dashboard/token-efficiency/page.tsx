@@ -1,4 +1,12 @@
-import DashboardStub from '../../../../components/dashboard/DashboardStub';
+import ROIDashboard from '../../../../components/dashboard/ROIDashboard';
+
+export const metadata = {
+  title: 'Token Efficiency & ROI — Tokna',
+};
+
 export default function TokenEfficiency() {
-  return <DashboardStub name="Token Efficiency" health={71} monthlyWaste="$3,100" alertCount={2} />;
+  // Server component: pass null for userEmail — the client component
+  // will use 'demo@tokna.ai' as fallback (Firebase Auth not yet integrated server-side).
+  // When Firebase client auth is wired up, pass user.email here.
+  return <ROIDashboard userEmail={null} />;
 }
