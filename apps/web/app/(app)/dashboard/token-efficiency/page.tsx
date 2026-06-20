@@ -6,7 +6,6 @@ export const metadata = {
 
 export default function TokenEfficiency() {
   // Server component: pass null for userEmail — the client component
-  // will use 'demo@tokna.ai' as fallback (Firebase Auth not yet integrated server-side).
-  // When Firebase client auth is wired up, pass user.email here.
-  return <ROIDashboard userEmail={null} />;
+  // will use 'nroan28@gmail.com' as fallback during this verification phase.
+  return <ROIDashboard userEmail="nroan28@gmail.com" />;
 }
