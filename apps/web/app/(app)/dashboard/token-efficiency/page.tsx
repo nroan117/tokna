@@ -5,7 +5,7 @@ export const metadata = {
 };
 
 export default function TokenEfficiency() {
-  // Server component: pass null for userEmail — the client component
-  // will use 'nroan28@gmail.com' as fallback during this verification phase.
-  return <ROIDashboard userEmail="nroan28@gmail.com" />;
+  // Client component authenticates with the user's personal Tokna API key
+  // (kept in the browser's localStorage); no server-side identity needed.
+  return <ROIDashboard />;
 }

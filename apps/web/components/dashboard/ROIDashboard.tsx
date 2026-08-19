@@ -19,6 +19,10 @@ interface ROISummary {
     tokens_avoided: number;
     usd_saved: number;
   }>;
+  audits_run?: number;
+  audits_blocked?: number;
+  by_rule?: Record<string, { count: number; tokens_avoided: number; usd_saved: number }>;
+  by_project?: Record<string, { events: number; usd_saved: number; audits: number; blocked: number; sessions: number }>;
   // Computed fields (can be added by frontend)
   monthly_savings_usd?: number;
   monthly_savings_target_usd?: number;
@@ -131,34 +135,49 @@ const MOCK_EVENTS: ROIEvent[] = [
 ];
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
+//
+// Auth: a personal Tokna API key (issued via POST /v1/keys/issue) is sent as
+// X-Tokna-API-Key. The backend derives the user from the key, so no email is
+// needed. The key is kept only in this browser's localStorage.
 
-const API_BASE = 'https://cost-api-706230423289.us-central1.run.app';
+const API_BASE = process.env.NEXT_PUBLIC_TOKNA_API_BASE || 'https://cost-api-gqiljr3w4q-uc.a.run.app';
+const KEY_STORAGE = 'tokna_api_key';
 
-async function fetchSummary(email: string): Promise<ROISummary> {
-  const res = await fetch(`${API_BASE}/v1/roi/summary?email=${encodeURIComponent(email)}`, {
-    next: { revalidate: 60 },
+export function loadStoredKey(): string {
+  if (typeof window === 'undefined') return '';
+  try { return window.localStorage.getItem(KEY_STORAGE) || ''; } catch { return ''; }
+}
+export function storeKey(key: string) {
+  try {
+    if (key) window.localStorage.setItem(KEY_STORAGE, key);
+    else window.localStorage.removeItem(KEY_STORAGE);
+  } catch { /* ignore */ }
+}
+
+async function apiGet(path: string, apiKey: string) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { 'X-Tokna-API-Key': apiKey },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-async function fetchEvents(email: string): Promise<ROIEvent[]> {
-  const res = await fetch(`${API_BASE}/v1/roi/events?email=${encodeURIComponent(email)}&limit=20`, {
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  
-  // Map backend model to frontend ROIEvent
+async function fetchSummary(apiKey: string): Promise<ROISummary> {
+  return apiGet('/v1/roi/summary', apiKey);
+}
+
+async function fetchEvents(apiKey: string): Promise<ROIEvent[]> {
+  const data = await apiGet('/v1/roi/events?limit=25', apiKey);
   return (data.events || []).map((ev: any) => ({
     id: String(ev.id),
-    type: ev.type?.toUpperCase().includes('GUIDE') ? 'GUIDE' : 'AUDIT',
+    type: String(ev.type || '').startsWith('audit') ? 'AUDIT' : 'GUIDE',
     timestamp: ev.ts,
-    summary: ev.summary || 'Optimization applied',
+    summary: (ev.project ? `[${ev.project}] ` : '') + (ev.summary || 'Optimization applied'),
     savings_usd: ev.usd_saved || 0,
     tokens_saved: ev.tokens_avoided || 0,
-    rule_id: ev.rule_id || 'unknown',
-    status: ev.type?.toLowerCase().includes('hit') ? 'flagged' : 'applied',
+    rule_id: ev.rule_id || (ev.type || 'unknown'),
+    status: ev.type === 'audit_blocked' ? 'flagged' : 'applied',
   }));
 }
 
@@ -193,7 +212,10 @@ interface ROIDashboardProps {
 }
 
 export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
-  const email = userEmail ?? 'demo@tokna.ai';
+  const [apiKey, setApiKey] = useState<string>('');
+  const [keyInput, setKeyInput] = useState<string>('');
+  const [keyLoaded, setKeyLoaded] = useState(false);
+  useEffect(() => { setApiKey(loadStoredKey()); setKeyLoaded(true); }, []);
 
   const [summary, setSummary] = useState<ROISummary | null>(null);
   const [events, setEvents] = useState<ROIEvent[]>([]);
@@ -202,11 +224,19 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
   const [usingMockData, setUsingMockData] = useState(false);
 
   useEffect(() => {
+    if (!keyLoaded) return;
     let cancelled = false;
+    if (!apiKey) {
+      // No key: show demo data with the connect prompt.
+      setSummary(mockSummary('demo@tokna.ai')); setUsingMockData(true); setLoadingSummary(false);
+      setEvents(MOCK_EVENTS); setLoadingEvents(false);
+      return () => { cancelled = true; };
+    }
+    setUsingMockData(false);
 
     // Fetch summary
     setLoadingSummary(true);
-    fetchSummary(email)
+    fetchSummary(apiKey)
       .then((data) => {
         if (!cancelled) {
           setSummary(data);
@@ -223,7 +253,7 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
 
     // Fetch events
     setLoadingEvents(true);
-    fetchEvents(email)
+    fetchEvents(apiKey)
       .then((data) => {
         if (!cancelled) {
           setEvents(data);
@@ -238,7 +268,10 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
       });
 
     return () => { cancelled = true; };
-  }, [email]);
+  }, [apiKey, keyLoaded]);
+
+  const email = summary?.email || (apiKey ? '…' : 'not connected');
+  const s: ROISummary = summary ?? mockSummary('');
 
     const totalSaved = s.total_usd_saved;
     const monthlyTarget = s.monthly_savings_target_usd || 100.0; // Dynamic target or default
@@ -249,7 +282,7 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
       : `$${totalSaved.toFixed(2)}`;
 
     const guideCount = s.guide_runs || s.event_breakdown_by_type?.guide_applied?.count || 0;
-    const auditCount = s.audit_runs || s.event_breakdown_by_type?.audit_hit?.count || 0;
+    const auditCount = s.audits_run ?? (s.audit_runs || s.event_breakdown_by_type?.audit_hit?.count || 0);
 
   return (
     <>
@@ -273,17 +306,28 @@ export default function ROIDashboard({ userEmail }: ROIDashboardProps) {
               Savings from Tokna Guide + Audit passes · {email}
             </p>
           </div>
-          {usingMockData && (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.5rem 0.875rem',
-              background: 'rgba(249,115,22,0.08)',
-              border: '1px solid rgba(249,115,22,0.25)',
-              borderRadius: '0.5rem',
-              fontSize: '0.75rem', color: '#f97316', fontWeight: 600,
-            }}>
-              📊 Demo data — connect your account to see real savings
+          {apiKey ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: '#6b7280' }}>
+              <span style={{ color: '#16a34a', fontWeight: 600 }}>● Connected</span>
+              <span>key {apiKey.slice(0, 12)}…</span>
+              <button onClick={() => { storeKey(''); setApiKey(''); }}
+                style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '0.375rem', padding: '0.25rem 0.625rem', cursor: 'pointer', fontSize: '0.75rem' }}>
+                Disconnect
+              </button>
             </div>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); const k = keyInput.trim(); if (k) { storeKey(k); setApiKey(k); setKeyInput(''); } }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: 600 }}>📊 Demo data —</span>
+              <input type="password" value={keyInput} onChange={(e) => setKeyInput(e.target.value)}
+                placeholder="paste your Tokna API key" autoComplete="off"
+                style={{ border: '1px solid #e2e8f0', borderRadius: '0.375rem', padding: '0.375rem 0.625rem', fontSize: '0.8125rem', width: '18rem' }} />
+              <button type="submit"
+                style={{ background: '#f97316', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600 }}>
+                Connect
+              </button>
+              <span style={{ fontSize: '0.6875rem', color: '#9ca3af' }}>stored only in this browser · from ~/.tokna/config.json</span>
+            </form>
           )}
         </div>
 
