@@ -25,6 +25,7 @@ interface ROISummary {
   total_tokens_avoided: number;
   total_usd_saved: number;
   session_count: number;
+  total_usd_saved_high?: number;
   audits_run?: number;
   audits_blocked?: number;
   event_breakdown_by_type?: Record<string, Breakdown>;
@@ -40,6 +41,8 @@ interface ROIEvent {
   rule_id: string | null;
   tokens_avoided: number | null;
   usd_saved: number | null;
+  usd_saved_high?: number | null;
+  confidence?: string | null;
   summary: string | null;
   ts: string | null;
 }
@@ -73,6 +76,8 @@ async function apiGet<T>(path: string, apiKey: string): Promise<T> {
 // ── Formatting ────────────────────────────────────────────────────────────────
 
 const usd = (n: number | null | undefined, d = 2) => '$' + (n || 0).toFixed(d);
+const usdRange = (lo: number, hi: number | null | undefined, d = 2) =>
+  (hi != null && hi > lo + 0.005) ? `$${lo.toFixed(d)}–$${hi.toFixed(d)}` : usd(lo, d);
 const fmtDay = (ts: string | null) => { try { return ts ? new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''; } catch { return ''; } };
 const fmtTime = (ts: string | null) => { try { return ts ? new Date(ts).toLocaleTimeString() : ''; } catch { return ts || ''; } };
 const shortProject = (p: string | null | undefined) => (p && p !== '(unknown)' ? p : null);
@@ -140,9 +145,12 @@ export default function ROIDashboard() {
 
   const guideUsd = guideEvents.reduce((t, e) => t + (e.usd_saved || 0), 0);
   const auditUsd = findingEvents.reduce((t, e) => t + (e.usd_saved || 0), 0);
+  const auditUsdHigh = findingEvents.reduce((t, e) => t + (e.usd_saved_high ?? e.usd_saved ?? 0), 0);
+  const totalUsdHigh = guideUsd + auditUsdHigh;
 
   const totals = {
     usd: projectFilter ? guideUsd + auditUsd : (summary?.total_usd_saved || 0),
+    usdHigh: projectFilter ? totalUsdHigh : (summary?.total_usd_saved_high ?? summary?.total_usd_saved ?? 0),
     tokens: projectFilter
       ? [...guideEvents, ...findingEvents].reduce((t, e) => t + (e.tokens_avoided || 0), 0)
       : (summary?.total_tokens_avoided || 0),
@@ -196,7 +204,7 @@ export default function ROIDashboard() {
       {apiKey && (
         <>
           <div className="tiles">
-            <div className="tile"><div className="label">Est. Savings</div><div className="value good">{usd(totals.usd)}</div><div className="hint">guide (input) {usd(totals.guideUsd)} · audit (output) {usd(totals.auditUsd)}</div></div>
+            <div className="tile"><div className="label">Est. Savings</div><div className="value good">{usdRange(totals.usd, totals.usdHigh)}</div><div className="hint">guide (input) {usd(guideUsd)} · audit (output) {usdRange(auditUsd, auditUsdHigh)}</div></div>
             <div className="tile"><div className="label">Tokens Saved</div><div className="value">{totals.tokens.toLocaleString()}</div><div className="hint">{totals.opts} optimizations applied</div></div>
             <div className="tile"><div className="label">Audits Run</div><div className="value">{totals.audits}</div><div className="hint">{totals.blocked} blocked for self-correction</div></div>
             <div className="tile"><div className="label">Sessions</div><div className="value">{totals.sessions}</div><div className="hint">{projects.length} project{projects.length === 1 ? '' : 's'}</div></div>
@@ -262,7 +270,7 @@ export default function ROIDashboard() {
                       <td><span className="rulechip">{e.rule_id || e.type}</span></td>
                       <td>{e.summary || ''}</td>
                       <td className="num">{(e.tokens_avoided || 0).toLocaleString()}</td>
-                      <td className="num">{usd(e.usd_saved, 4)}</td>
+                      <td className="num">{usdRange(e.usd_saved || 0, e.usd_saved_high, isAudit ? 2 : 4)}</td>
                     </tr>);
                   }) : <tr><td colSpan={7} className="empty">No events yet.</td></tr>}
                 </tbody>
@@ -270,7 +278,7 @@ export default function ROIDashboard() {
             </div>
           </div>
 
-          <footer>Data from the Tokna Cost API · refreshes every {REFRESH_MS / 1000}s · privacy-safe metadata only (rule ids, savings, project name) — never prompts or code</footer>
+          <footer>Data from the Tokna Cost API · refreshes every {REFRESH_MS / 1000}s · privacy-safe metadata only (rule ids, savings, project name) — never prompts or code · audit savings shown as conservative–production range</footer>
         </>
       )}
     </div>
