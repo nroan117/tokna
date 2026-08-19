@@ -122,36 +122,36 @@ export default function ROIDashboard() {
     ? events.filter(e => (e.project || '(unknown)') === projectFilter)
     : events;
 
-  const guideEvents = visibleEvents.filter(e => !String(e.type).startsWith('audit'));
-  const auditEvents = visibleEvents.filter(e => String(e.type).startsWith('audit'));
+  const guideEvents = visibleEvents.filter(e => e.type === 'guide_applied' || (!String(e.type).startsWith('audit')));
+  const findingEvents = visibleEvents.filter(e => e.type === 'audit_finding');
+  const outcomeEvents = visibleEvents.filter(e => e.type === 'audit_pass' || e.type === 'audit_blocked');
+  const feedEvents = visibleEvents.filter(e => e.type !== 'audit_pass' && e.type !== 'audit_blocked'); // guide + findings
 
-  const byRule: Record<string, { count: number; usd: number }> = {};
-  for (const e of guideEvents) {
+  // Savings-by-rule spans both stages (Guide injections + Audit catches).
+  const byRule: Record<string, { count: number; usd: number; stage: 'guide' | 'audit' }> = {};
+  for (const e of [...guideEvents, ...findingEvents]) {
     const k = e.rule_id || e.type || 'unknown';
-    byRule[k] = byRule[k] || { count: 0, usd: 0 };
+    byRule[k] = byRule[k] || { count: 0, usd: 0, stage: e.type === 'audit_finding' ? 'audit' : 'guide' };
     byRule[k].count += 1;
     byRule[k].usd += e.usd_saved || 0;
   }
   const ruleRows = Object.entries(byRule).sort((a, b) => b[1].usd - a[1].usd || b[1].count - a[1].count);
   const maxRuleUsd = Math.max(...ruleRows.map(([, r]) => r.usd), 0.0001);
 
-  const totals = projectFilter
-    ? {
-        usd: guideEvents.reduce((t, e) => t + (e.usd_saved || 0), 0),
-        tokens: guideEvents.reduce((t, e) => t + (e.tokens_avoided || 0), 0),
-        opts: guideEvents.length,
-        audits: auditEvents.length,
-        blocked: auditEvents.filter(e => e.type === 'audit_blocked').length,
-        sessions: new Set(visibleEvents.map(e => e.session_id)).size,
-      }
-    : {
-        usd: summary?.total_usd_saved || 0,
-        tokens: summary?.total_tokens_avoided || 0,
-        opts: (summary?.total_events || 0) - (summary?.audits_run || 0),
-        audits: summary?.audits_run || 0,
-        blocked: summary?.audits_blocked || 0,
-        sessions: summary?.session_count || 0,
-      };
+  const guideUsd = guideEvents.reduce((t, e) => t + (e.usd_saved || 0), 0);
+  const auditUsd = findingEvents.reduce((t, e) => t + (e.usd_saved || 0), 0);
+
+  const totals = {
+    usd: projectFilter ? guideUsd + auditUsd : (summary?.total_usd_saved || 0),
+    tokens: projectFilter
+      ? [...guideEvents, ...findingEvents].reduce((t, e) => t + (e.tokens_avoided || 0), 0)
+      : (summary?.total_tokens_avoided || 0),
+    guideUsd, auditUsd,
+    opts: guideEvents.length + findingEvents.length,
+    audits: projectFilter ? outcomeEvents.length : (summary?.audits_run || 0),
+    blocked: projectFilter ? outcomeEvents.filter(e => e.type === 'audit_blocked').length : (summary?.audits_blocked || 0),
+    sessions: projectFilter ? new Set(visibleEvents.map(e => e.session_id)).size : (summary?.session_count || 0),
+  };
 
   return (
     <div className="tk">
@@ -196,7 +196,7 @@ export default function ROIDashboard() {
       {apiKey && (
         <>
           <div className="tiles">
-            <div className="tile"><div className="label">Est. Savings</div><div className="value good">{usd(totals.usd)}</div><div className="hint">{projectFilter || 'all machines · all sessions'}</div></div>
+            <div className="tile"><div className="label">Est. Savings</div><div className="value good">{usd(totals.usd)}</div><div className="hint">guide (input) {usd(totals.guideUsd)} · audit (output) {usd(totals.auditUsd)}</div></div>
             <div className="tile"><div className="label">Tokens Saved</div><div className="value">{totals.tokens.toLocaleString()}</div><div className="hint">{totals.opts} optimizations applied</div></div>
             <div className="tile"><div className="label">Audits Run</div><div className="value">{totals.audits}</div><div className="hint">{totals.blocked} blocked for self-correction</div></div>
             <div className="tile"><div className="label">Sessions</div><div className="value">{totals.sessions}</div><div className="hint">{projects.length} project{projects.length === 1 ? '' : 's'}</div></div>
@@ -225,18 +225,18 @@ export default function ROIDashboard() {
 
           <div className="grid2">
             <div className="card">
-              <h2>Savings by rule (USD)</h2>
+              <h2>Savings by rule (USD) <span className="sub">· guide + audit</span></h2>
               {ruleRows.length ? ruleRows.map(([rule, r]) => (
-                <div className="barrow" key={rule} title={`${rule}: ${usd(r.usd, 4)} across ${r.count} event(s)`}>
-                  <div className="name">{rule}</div>
-                  <div className="track"><div className="bar" style={{ width: `${Math.max(2, (r.usd / maxRuleUsd) * 100)}%` }} /></div>
+                <div className="barrow" key={rule} title={`${rule} (${r.stage} stage): ${usd(r.usd, 4)} across ${r.count} event(s)`}>
+                  <div className="name"><span className={'stagedot ' + r.stage} />{rule}</div>
+                  <div className="track"><div className={'bar ' + r.stage} style={{ width: `${Math.max(2, (r.usd / maxRuleUsd) * 100)}%` }} /></div>
                   <div className="val">{usd(r.usd)}</div>
                 </div>
               )) : <div className="empty">No optimization events yet.</div>}
             </div>
             <div className="card">
               <h2>Audit activity (Stop hook)</h2>
-              {auditEvents.length ? auditEvents.slice(0, 12).map(a => (
+              {outcomeEvents.length ? outcomeEvents.slice(0, 12).map(a => (
                 <div className="audit" key={a.id}>
                   <span className={'badge ' + (a.type === 'audit_blocked' ? 'blocked' : 'pass')}>{a.type === 'audit_blocked' ? '✗ BLOCKED' : '✓ PASS'}</span>
                   <span className="files">{shortProject(a.project) ? <b>{a.project} · </b> : null}{a.summary || '—'}</span>
@@ -247,21 +247,24 @@ export default function ROIDashboard() {
           </div>
 
           <div className="card">
-            <h2>Optimization event feed (Guide stage)</h2>
+            <h2>Optimization event feed (Guide + Audit stages)</h2>
             <div className="tablewrap">
               <table>
-                <thead><tr><th>Time</th><th>Project</th><th>Rule</th><th>Summary</th><th className="r">Tokens</th><th className="r">USD</th></tr></thead>
+                <thead><tr><th>Time</th><th>Stage</th><th>Project</th><th>Rule</th><th>Summary</th><th className="r">Tokens</th><th className="r">USD</th></tr></thead>
                 <tbody>
-                  {guideEvents.length ? guideEvents.slice(0, 50).map(e => (
+                  {feedEvents.length ? feedEvents.slice(0, 50).map(e => {
+                    const isAudit = e.type === 'audit_finding';
+                    return (
                     <tr key={e.id}>
                       <td>{fmtDay(e.ts)} {fmtTime(e.ts)}</td>
+                      <td><span className={'badge ' + (isAudit ? 'blocked' : 'pass')} style={{ fontSize: '10px' }}>{isAudit ? 'AUDIT' : 'GUIDE'}</span></td>
                       <td>{shortProject(e.project) || <span className="muted">—</span>}</td>
                       <td><span className="rulechip">{e.rule_id || e.type}</span></td>
                       <td>{e.summary || ''}</td>
                       <td className="num">{(e.tokens_avoided || 0).toLocaleString()}</td>
                       <td className="num">{usd(e.usd_saved, 4)}</td>
-                    </tr>
-                  )) : <tr><td colSpan={6} className="empty">No events yet.</td></tr>}
+                    </tr>);
+                  }) : <tr><td colSpan={7} className="empty">No events yet.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -339,5 +342,9 @@ const CSS = `
 .tk tbody tr.sel td { background: rgba(57,135,229,0.10); }
 .tk .rulechip { display: inline-flex; align-items: center; gap: 6px; }
 .tk .rulechip::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--series); }
+.tk .stagedot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+.tk .stagedot.guide { background: var(--series); }
+.tk .stagedot.audit { background: var(--warning); }
+.tk .barrow .bar.audit { background: var(--warning); }
 .tk footer { color: var(--muted); font-size: 11.5px; margin-top: 14px; }
 `;
